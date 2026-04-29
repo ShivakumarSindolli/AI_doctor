@@ -1,0 +1,720 @@
+================================================================================
+                    AI DOCTOR PRO - PROJECT SUMMARY
+                        Full Stack AI Medical Assistant
+================================================================================
+Project Name: AI Doctor Pro
+Version: 2.0.0
+Purpose: High-level AI medical assistant with voice, vision, RAG, specialist 
+         triage, safety guardrails, patient authentication, and consultation history
+Status: Fully Functional with Error Handling & Fallbacks
+Created: 2026
+Disclaimer: This is an educational project. Always consult a qualified physician.
+
+================================================================================
+                              PROJECT OVERVIEW
+================================================================================
+
+AI Doctor Pro is a comprehensive full-stack application that combines:
+- Speech-to-Text (STT) for capturing patient symptoms via voice
+- Medical Vision Analysis for analyzing patient-uploaded images
+- Intelligent Triage System to route cases to appropriate specialists
+- Diagnosis Engine with RAG (Retrieval-Augmented Generation) capabilities
+- Multi-Specialist Response Generation
+- Safety Guardrails and Confidence Scoring
+- Text-to-Speech (TTS) for audio output
+- Patient Authentication & Management
+- Consultation History Tracking
+- Multi-turn Conversation Memory
+
+================================================================================
+                            TECHNOLOGY STACK
+================================================================================
+
+BACKEND:
+  Framework: FastAPI 0.115.0+
+  Server: Uvicorn 0.30.0+
+  Database: SQLite (default) or PostgreSQL
+  ORM: SQLAlchemy 2.0.30+
+  Auth: JWT (python-jose) with bcrypt hashing
+  
+AI/ML SERVICES:
+  Speech Recognition:
+    - Primary: Groq Whisper large-v3 API
+    - Fallback: Google Speech Recognition (free, offline capability)
+  Vision Analysis: Llama 4 Scout 17B via Groq
+  LLM Reasoning: Llama 3.3 70B via Groq
+  Text Embeddings: sentence-transformers (all-MiniLM-L6-v2)
+  Vector DB: ChromaDB 0.5.0+ (RAG storage)
+  
+TTS (Text-to-Speech):
+  - Primary: ElevenLabs (Premium)
+  - Fallback: gTTS (free Google TTS)
+  
+FRONTEND:
+  Framework: React (via Vite)
+  UI Library: Gradio 5.12.0+
+  Build Tool: Vite
+  Components: Custom React components + Gradio interface
+
+DEPENDENCIES:
+  - fastapi >= 0.115.0
+  - uvicorn[standard] >= 0.30.0
+  - pydantic[email] >= 2.7.0
+  - sqlalchemy >= 2.0.30
+  - psycopg2-binary >= 2.9.0 (PostgreSQL support)
+  - chromadb >= 0.5.0
+  - sentence-transformers >= 3.0.0
+  - groq >= 0.15.0
+  - python-jose[cryptography] >= 3.3.0
+  - passlib[bcrypt] >= 1.7.4
+  - gtts >= 2.5.4
+  - speechrecognition >= 3.13.0
+  - pydub >= 0.25.1
+  - elevenlabs (optional)
+  - gradio >= 5.12.0
+  - requests >= 2.32.3
+  - python-dotenv >= 1.0.0
+
+================================================================================
+                            ARCHITECTURE DESIGN
+================================================================================
+
+SYSTEM FLOW:
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        USER INTERACTION LAYER                               │
+│                      React Frontend (Port 7860)                             │
+│  ├─ Login/Registration                                                      │
+│  ├─ Patient Profile Management                                              │
+│  ├─ Consultation Interface (Voice + Image Upload)                           │
+│  └─ Consultation History & Results                                          │
+└────────────────────────┬────────────────────────────────────────────────────┘
+                         │ HTTP REST API
+                         ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    FASTAPI BACKEND (Port 8000)                              │
+│                                                                              │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 1. INPUT PROCESSING                                                 │  │
+│  │    ├─ Audio File Upload → Temporary Storage                        │  │
+│  │    └─ Medical Image Upload (optional) → Temporary Storage          │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 2. SPEECH-TO-TEXT (STT)                                             │  │
+│  │    ├─ Primary: Groq Whisper large-v3 (high accuracy)               │  │
+│  │    ├─ Fallback: Google Speech Recognition (free)                   │  │
+│  │    └─ Error Handling: Graceful fallback on API failure             │  │
+│  │    Output: Transcribed patient symptoms (text)                      │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 3. EMERGENCY CHECK (FAST PATH)                                      │  │
+│  │    ├─ Pattern Matching for emergency keywords                      │  │
+│  │    └─ If emergency detected → Return immediate response            │  │
+│  │        "Call emergency services immediately"                        │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 4. MEDICAL VISION ANALYSIS (Optional)                              │  │
+│  │    ├─ If image provided: Llama 4 Scout analysis                    │  │
+│  │    ├─ Structured output (findings, severity, specialty)             │  │
+│  │    ├─ Error Handling: Continue without vision if fails              │  │
+│  │    └─ Output: Vision findings JSON                                  │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 5. TRIAGE & ROUTING                                                 │  │
+│  │    ├─ Analyze patient text + vision findings                        │  │
+│  │    ├─ Route to appropriate specialty:                              │  │
+│  │    │  ├─ Dermatology, Cardiology, Neurology, Orthopedics          │  │
+│  │    │  ├─ Gastroenterology, Pulmonology, Psychiatry                │  │
+│  │    │  ├─ Ophthalmology, ENT, Endocrinology, Urology               │  │
+│  │    │  └─ General Medicine                                          │  │
+│  │    ├─ Urgency Classification:                                       │  │
+│  │    │  ├─ Emergency (immediate physician consult)                    │  │
+│  │    │  ├─ Urgent (same-day attention recommended)                   │  │
+│  │    │  └─ Routine (scheduled appointment)                           │  │
+│  │    └─ ICD-10 Category Hints Generation                              │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 6. RAG PIPELINE (Knowledge-Augmented Generation)                    │  │
+│  │    ├─ Retrieve relevant medical knowledge from:                     │  │
+│  │    │  ├─ Cardiology.txt (cardiovascular diseases)                   │  │
+│  │    │  ├─ Dermatology.txt (skin conditions)                          │  │
+│  │    │  ├─ General_medicine.txt (common conditions)                   │  │
+│  │    │  └─ Neurology_ortho.txt (neurological & orthopedic)            │  │
+│  │    ├─ Embedding-based similarity search via ChromaDB                │  │
+│  │    ├─ Top-5 relevant chunks retrieval (RAG_TOP_K = 5)               │  │
+│  │    └─ Output: Relevant medical context for diagnosis                │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 7. CONVERSATION MEMORY                                              │  │
+│  │    ├─ Retrieve conversation history (last 10 turns)                │  │
+│  │    ├─ Load patient profile:                                        │  │
+│  │    │  ├─ Name, Age, Gender, Blood Type                            │  │
+│  │    │  ├─ Known Allergies                                           │  │
+│  │    │  └─ Current Medications                                       │  │
+│  │    └─ Maintain context across multiple turns                       │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 8. STRUCTURED DIAGNOSIS GENERATION                                  │  │
+│  │    ├─ Input: Patient text, specialty, vision findings, RAG context  │  │
+│  │    ├─ Model: Llama 3.3 70B reasoning engine                        │  │
+│  │    ├─ Output: Differential diagnoses with probabilities             │  │
+│  │    │  ├─ Top 3-5 likely diagnoses                                  │  │
+│  │    │  ├─ Confidence scores per diagnosis                           │  │
+│  │    │  ├─ ICD-10 codes                                              │  │
+│  │    │  └─ Reasoning explanation                                     │  │
+│  │    └─ Error Handling: Returns safe fallback on LLM failure          │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 9. SPECIALIST RESPONSE GENERATION                                   │  │
+│  │    ├─ Specialty-specific guidance (routing agents)                  │  │
+│  │    ├─ Tailored recommendations based on:                           │  │
+│  │    │  ├─ Diagnosed conditions                                      │  │
+│  │    │  ├─ Specialty protocols                                       │  │
+│  │    │  └─ Medical best practices                                    │  │
+│  │    └─ Natural conversational response generation                    │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 10. SAFETY GUARDRAILS & CONFIDENCE SCORING                          │  │
+│  │     ├─ Confidence Calculation:                                      │  │
+│  │     │  ├─ Patient symptom clarity score (0-1)                      │  │
+│  │     │  ├─ LLM response certainty (0-1)                             │  │
+│  │     │  ├─ Vision analysis confidence if image provided              │  │
+│  │     │  └─ Combined weighted score                                   │  │
+│  │     ├─ Confidence Threshold: 0.4 (below = escalate to doctor)       │  │
+│  │     ├─ Safety Checks:                                               │  │
+│  │     │  ├─ High-risk condition detection                             │  │
+│  │     │  ├─ Medication conflict detection                             │  │
+│  │     │  ├─ Allergy compatibility checks                              │  │
+│  │     │  └─ Escalation flag if confidence too low                     │  │
+│  │     └─ Output: "flagged" status for physician review               │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 11. TEXT-TO-SPEECH (TTS) SYNTHESIS                                  │  │
+│  │     ├─ Primary: ElevenLabs (natural voice quality)                  │  │
+│  │     ├─ Fallback: Google gTTS (free alternative)                     │  │
+│  │     ├─ Error Handling: Continue with text if TTS fails              │  │
+│  │     └─ Output: MP3 audio file (persisted for frontend)              │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │ 12. DATABASE PERSISTENCE                                            │  │
+│  │     ├─ Save Consultation Record:                                    │  │
+│  │     │  ├─ Session ID (UUID)                                        │  │
+│  │     │  ├─ Patient symptoms (transcribed text)                      │  │
+│  │     │  ├─ Medical image path (if provided)                         │  │
+│  │     │  ├─ Routed specialty & urgency                               │  │
+│  │     │  ├─ Diagnosis JSON (full structured output)                   │  │
+│  │     │  ├─ Doctor response text                                     │  │
+│  │     │  ├─ Confidence score                                         │  │
+│  │     │  ├─ ICD-10 codes                                             │  │
+│  │     │  ├─ Safety flag status                                       │  │
+│  │     │  └─ Timestamp                                                │  │
+│  │     ├─ Save Conversation Turn:                                      │  │
+│  │     │  ├─ User message (patient text)                              │  │
+│  │     │  ├─ Assistant response                                       │  │
+│  │     │  └─ Conversation context                                     │  │
+│  │     └─ Error Handling: Rollback on DB write failure                 │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                         │                                                    │
+│  └──────────────────────────────────────────────────────────────────────┐  │
+│  │ 13. RETURN RESPONSE TO FRONTEND                                     │  │
+│  │     ├─ Session ID (for multi-turn conversations)                    │  │
+│  │     ├─ Patient text (transcribed symptoms)                          │  │
+│  │     ├─ Specialist routed (dermatology, cardiology, etc.)            │  │
+│  │     ├─ Urgency level (emergency/urgent/routine)                     │  │
+│  │     ├─ Diagnosis (differential diagnoses with probabilities)        │  │
+│  │     ├─ Doctor response (final recommendation text)                  │  │
+│  │     ├─ Confidence score (0-1 scale)                                │  │
+│  │     ├─ ICD-10 codes                                                │  │
+│  │     ├─ Safety flags (if any)                                       │  │
+│  │     ├─ Audio path (for TTS output)                                 │  │
+│  │     └─ Audio URL (for frontend playback)                           │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+================================================================================
+                           PROJECT STRUCTURE
+================================================================================
+
+ai_doctor_pro/
+├── backend/                           [FastAPI Backend]
+│   ├── __init__.py
+│   ├── main.py                        [FastAPI app initialization]
+│   ├── config.py                      [Configuration & API keys]
+│   ├── database.py                    [SQLAlchemy models & DB setup]
+│   ├── auth.py                        [JWT authentication]
+│   │
+│   ├── agents/                        [AI Decision-Making Agents]
+│   │   ├── triage_agent.py            [Routes to specialty: 12+ specialties]
+│   │   ├── diagnosis_agent.py         [Generates differential diagnoses]
+│   │   └── specialist_agents.py       [Specialty-specific responses]
+│   │
+│   ├── services/                      [External API & Core Services]
+│   │   ├── stt_service.py             [Speech-to-Text: Groq + Google fallback]
+│   │   ├── vision_service.py          [Medical image analysis (Llama 4 Scout)]
+│   │   ├── rag_service.py             [RAG: ChromaDB embedding & retrieval]
+│   │   ├── memory_service.py          [Conversation history management]
+│   │   ├── safety_service.py          [Safety guardrails & confidence scoring]
+│   │   ├── tts_service.py             [Text-to-Speech: ElevenLabs + gTTS]
+│   │   └── <error handling>           [All services have graceful fallbacks]
+│   │
+│   ├── routers/                       [API Endpoints]
+│   │   ├── auth.py                    [/auth - Login, Register, Token refresh]
+│   │   ├── patients.py                [/patients - Profile, medical info]
+│   │   ├── consultation.py            [/consult - Main consultation endpoint]
+│   │   └── history.py                 [/history - Retrieve past consultations]
+│   │
+│   └── data/                          [Local Data Storage]
+│       ├── chroma_db/                 [Vector DB for RAG embeddings]
+│       │   └── *.sqlite3              [ChromaDB persistence]
+│       ├── knowledge_base/            [Medical knowledge documents]
+│       │   ├── cardiology.txt         [Cardiovascular conditions]
+│       │   ├── dermatology.txt        [Skin disorders]
+│       │   ├── general_medicine.txt   [Common conditions]
+│       │   └── neurology_ortho.txt    [Neuro & bone conditions]
+│       ├── uploads/                   [Temporary file storage]
+│       └── audio_output.mp3           [Generated TTS audio]
+│
+├── frontend/                          [React + Vite Frontend]
+│   ├── app.py                         [Gradio interface initialization]
+│   ├── package.json                   [Node dependencies]
+│   ├── vite.config.js                 [Vite build configuration]
+│   ├── index.html                     [HTML entry point]
+│   │
+│   └── src/                           [React Components]
+│       ├── main.jsx                   [React entry point]
+│       ├── App.jsx                    [Main app component]
+│       └── styles.css                 [Styling]
+│
+├── scripts/                           [Utility Scripts]
+│
+├── .env                               [Environment Variables (API keys)]
+├── .env.example                       [Template for .env]
+├── .gitignore                         [Git ignore rules]
+├── requirements.txt                   [All dependencies]
+├── requirements_no_eleven.txt         [Dependencies excluding ElevenLabs]
+├── run.py                             [Start both backend & frontend]
+├── README.md                          [Project documentation]
+├── ai_doctor.db                       [SQLite database (auto-created)]
+└── PROJECT_SUMMARY.txt                [This file]
+
+================================================================================
+                        DATABASE SCHEMA
+================================================================================
+
+USERS TABLE:
+  ├─ id (PK, Integer)
+  ├─ email (String, Unique)
+  ├─ full_name (String)
+  ├─ hashed_password (String)
+  ├─ age (Integer, Optional)
+  ├─ gender (String, Optional)
+  ├─ blood_type (String, Optional)
+  ├─ allergies (Text, Optional)
+  ├─ medications (Text, Optional)
+  ├─ created_at (DateTime)
+  └─ Relationship: consultations (1:M)
+
+CONSULTATIONS TABLE:
+  ├─ id (PK, Integer)
+  ├─ user_id (FK → users.id)
+  ├─ session_id (String, Indexed)
+  ├─ patient_text (Text) - Transcribed symptoms
+  ├─ image_path (String, Optional) - Medical image location
+  ├─ specialist (String) - Routed specialty
+  ├─ diagnosis (Text) - JSON diagnosis data
+  ├─ doctor_response (Text) - Final recommendation
+  ├─ confidence (Float) - Confidence score (0-1)
+  ├─ icd_codes (Text) - Comma-separated ICD-10 codes
+  ├─ flagged (Boolean) - Safety flag
+  ├─ created_at (DateTime)
+  └─ Relationship: user (M:1)
+
+CONVERSATION_TURNS TABLE:
+  ├─ id (PK, Integer)
+  ├─ session_id (String, Indexed, FK)
+  ├─ role (String) - "user" or "assistant"
+  ├─ content (Text) - Message content
+  ├─ created_at (DateTime)
+  └─ Relationship: session (M:1)
+
+================================================================================
+                          API ENDPOINTS
+================================================================================
+
+AUTHENTICATION ROUTES (/auth):
+  POST /auth/register
+    - Create new user account
+    - Input: email, password, full_name
+    - Output: user_id, token, token_type
+
+  POST /auth/login
+    - User authentication via email/password
+    - Output: access_token, token_type, user info
+
+  POST /auth/refresh
+    - Refresh expired JWT token
+    - Input: refresh_token
+    - Output: new access_token
+
+PATIENT ROUTES (/patients):
+  GET /patients/me
+    - Get current logged-in patient profile
+    - Output: Full patient details (name, age, medical history, etc.)
+
+  PUT /patients/me
+    - Update patient profile
+    - Input: Medical info (age, gender, blood_type, allergies, medications)
+    - Output: Updated patient object
+
+  GET /patients/{user_id}
+    - Get specific patient info (requires auth)
+    - Output: Patient details
+
+CONSULTATION ROUTES (/consult):
+  POST /consult/
+    - Main consultation endpoint (full pipeline)
+    - Input: audio (audio file), image (optional), session_id (optional)
+    - Process: STT → Triage → RAG → Diagnosis → Safety → TTS
+    - Output: Complete consultation result with diagnosis, response, audio
+
+HISTORY ROUTES (/history):
+  GET /history/?limit=20
+    - Retrieve past consultations for current user
+    - Query: limit (default 20), offset (pagination)
+    - Output: List of consultation records with summaries
+
+  GET /history/{session_id}
+    - Get specific consultation details
+    - Output: Full consultation with conversation history
+
+  GET /history/{session_id}/conversation
+    - Get multi-turn conversation for a session
+    - Output: Array of conversation turns (user/assistant messages)
+
+================================================================================
+                        CONFIGURATION & SETUP
+================================================================================
+
+REQUIRED ENVIRONMENT VARIABLES (.env):
+  GROQ_API_KEY=your_groq_api_key
+    - Required for: STT, Vision, LLM reasoning
+    - Get from: https://console.groq.com/keys
+
+  ELEVEN_API_KEY=your_elevenlabs_api_key (Optional)
+    - Optional for enhanced TTS quality
+    - Get from: https://elevenlabs.io/app/settings/api-keys
+    - Falls back to free gTTS if not provided
+
+  SECRET_KEY=your_jwt_secret_key
+    - Used for JWT token signing
+    - Generate: openssl rand -hex 32
+
+  DATABASE_URL=sqlite:///./ai_doctor.db (or PostgreSQL URL)
+    - SQLite: sqlite:///./ai_doctor.db
+    - PostgreSQL: postgresql://user:pass@localhost/dbname
+
+  BACKEND_URL=http://127.0.0.1:8000
+    - Backend URL for frontend communication
+
+CONFIGURATION VALUES (backend/config.py):
+  VISION_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+  STT_MODEL = "whisper-large-v3"
+  LLM_MODEL = "llama-3.3-70b-versatile"
+  ELEVEN_MODEL = "eleven_flash_v2_5"
+  ELEVEN_VOICE_ID = "9BWtsMINqrJLrRacOk9x" (Aria voice)
+  CONFIDENCE_THRESHOLD = 0.4
+  MAX_HISTORY_TURNS = 10
+  RAG_TOP_K = 5 (chunks to retrieve)
+
+================================================================================
+                          ERROR HANDLING & FALLBACKS
+================================================================================
+
+SPEECH-TO-TEXT:
+  Primary: Groq Whisper large-v3
+  └─ Fallback: Google Speech Recognition (free)
+     └─ Fallback: Return user-friendly error message
+
+VISION ANALYSIS:
+  Primary: Llama 4 Scout via Groq
+  └─ Fallback: Continue consultation without vision analysis
+
+TEXT-TO-SPEECH:
+  Primary: ElevenLabs (premium voices)
+  └─ Fallback: Google gTTS (free)
+     └─ Fallback: Return response as text only
+
+RAG RETRIEVAL:
+  Primary: ChromaDB with sentence-transformers embeddings
+  └─ Fallback: Continue without knowledge base context
+
+TRIAGE/DIAGNOSIS/SPECIALISTS:
+  Primary: Groq LLM APIs
+  └─ Fallback: Return safe default responses with error flags
+
+DATABASE:
+  Primary: Save to database
+  └─ Fallback: Rollback transaction, log error, return error message
+
+ALL ERRORS:
+  ├─ Detailed logging for debugging
+  ├─ User-friendly error messages (no API errors exposed)
+  ├─ Graceful degradation (continue with alternatives)
+  └─ Safety flags set when errors occur
+
+================================================================================
+                          KEY FEATURES
+================================================================================
+
+1. MULTI-MODAL INPUT:
+   ✓ Voice input (audio files) → STT transcription
+   ✓ Medical images (optional) → Vision analysis
+   ✓ Patient text (manual input) → Direct processing
+   ✓ Patient medical profile → Integrated in diagnosis
+
+2. INTELLIGENT TRIAGE:
+   ✓ 12+ medical specialties supported
+   ✓ Urgency classification (emergency/urgent/routine)
+   ✓ Emergency fast-path detection
+   ✓ ICD-10 category hint generation
+
+3. DIAGNOSIS ENGINE:
+   ✓ Differential diagnosis generation
+   ✓ Probability scoring (0-1 scale)
+   ✓ Confidence scoring with multi-factor calculation
+   ✓ Reasoning explanation for each diagnosis
+   ✓ ICD-10 code assignment
+
+4. MEDICAL KNOWLEDGE INTEGRATION:
+   ✓ RAG (Retrieval-Augmented Generation)
+   ✓ 4 specialty-specific knowledge bases
+   ✓ Semantic search via embeddings
+   ✓ Top-5 relevant chunk retrieval
+   ✓ Contextual diagnosis enhancement
+
+5. SAFETY GUARDRAILS:
+   ✓ Confidence threshold enforcement (0.4 minimum)
+   ✓ High-risk condition detection
+   ✓ Medication conflict checking
+   ✓ Allergy compatibility validation
+   ✓ Low-confidence flagging (physician review needed)
+
+6. PATIENT MANAGEMENT:
+   ✓ User registration & authentication (JWT)
+   ✓ Patient profile (demographics, medical history)
+   ✓ Medical information storage (allergies, medications)
+   ✓ Multi-turn conversation memory (10-turn window)
+   ✓ Full consultation history with timestamps
+
+7. AUDIO OUTPUT:
+   ✓ TTS synthesis of doctor responses
+   ✓ Premium voice quality (ElevenLabs) or free (gTTS)
+   ✓ Audio file persistence
+   ✓ Frontend playback support
+
+8. SECURITY:
+   ✓ JWT-based authentication
+   ✓ Bcrypt password hashing
+   ✓ CORS middleware for frontend integration
+   ✓ Secure API endpoints
+   ✓ Session-based consultation tracking
+
+9. SCALABILITY:
+   ✓ SQLite for development, PostgreSQL for production
+   ✓ Stateless API design
+   ✓ Session-based multi-turn support
+   ✓ Horizontal scaling ready
+
+10. ERROR HANDLING:
+    ✓ Graceful fallbacks for all external APIs
+    ✓ Comprehensive logging (info/warning/error)
+    ✓ User-friendly error messages
+    ✓ Automatic retry with fallbacks
+    ✓ Database transaction rollback on errors
+
+================================================================================
+                          HOW TO RUN THE PROJECT
+================================================================================
+
+PREREQUISITES:
+  ✓ Python 3.8+ (tested on 3.14.3)
+  ✓ Node.js 16+ (for frontend)
+  ✓ Virtual environment (venv or conda)
+  ✓ Git
+
+INSTALLATION STEPS:
+
+1. Clone the repository:
+   git clone <repo_url>
+   cd ai_doctor_pro
+
+2. Create & activate virtual environment:
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+
+3. Install dependencies:
+   pip install -r requirements_no_eleven.txt
+   (or with ElevenLabs: pip install -r requirements.txt)
+
+4. Set up environment variables:
+   cp .env.example .env
+   # Edit .env with your API keys:
+   # - GROQ_API_KEY (required)
+   # - ELEVEN_API_KEY (optional)
+   # - SECRET_KEY (generate: openssl rand -hex 32)
+   # - DATABASE_URL (optional, defaults to SQLite)
+
+5. Initialize database:
+   # Automatically done on first backend startup
+   # Or manually: python -c "from backend.database import init_db; init_db()"
+
+6. Start both services:
+   python run.py
+   # Starts FastAPI backend on http://127.0.0.1:8000
+   # Starts React frontend on http://127.0.0.1:7860
+   # Both services run in the background
+
+   OR run separately:
+   # Terminal 1 - Backend:
+   uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+   
+   # Terminal 2 - Frontend:
+   cd frontend && npm run dev -- --host 127.0.0.1 --port 7860
+
+7. Access the application:
+   - Frontend UI: http://127.0.0.1:7860
+   - Backend API: http://127.0.0.1:8000
+   - API Docs: http://127.0.0.1:8000/docs (Swagger UI)
+   - ReDoc: http://127.0.0.1:8000/redoc
+
+TROUBLESHOOTING:
+
+Issue: "ModuleNotFoundError: No module named 'chromadb'"
+Solution: pip install -r requirements_no_eleven.txt
+
+Issue: "STT failed: Organization has been restricted"
+Solution: Your Groq API key is invalid/expired. Get a new one from https://console.groq.com/keys
+
+Issue: Frontend can't connect to backend
+Solution: Ensure both services are running and check BACKEND_URL in .env
+
+Issue: Database locked (SQLite)
+Solution: Delete ai_doctor.db and restart backend (will recreate)
+
+Issue: Port already in use
+Solution: Change port in run.py or kill existing process:
+  - Windows: netstat -ano | findstr :8000 → taskkill /PID <pid>
+  - Linux/Mac: lsof -i :8000 → kill -9 <pid>
+
+================================================================================
+                        DEVELOPMENT NOTES
+================================================================================
+
+DIRECTORY PURPOSE:
+- backend/: All FastAPI server code, models, routes, services
+- frontend/: React UI, Vite build, Gradio integration
+- backend/data/: SQLite DB, ChromaDB embeddings, medical knowledge, uploads
+- backend/agents/: AI decision-making systems (triage, diagnosis, specialists)
+- backend/services/: External API integrations (Groq, ChromaDB, gTTS, etc.)
+- backend/routers/: HTTP API endpoint handlers
+- scripts/: Utility scripts (migrations, data preprocessing, etc.)
+
+KEY FILES TO UNDERSTAND:
+1. backend/main.py - FastAPI app setup, startup/shutdown events
+2. backend/routers/consultation.py - Main consultation pipeline (11 steps)
+3. backend/services/stt_service.py - Speech-to-text with fallbacks
+4. backend/services/rag_service.py - Knowledge retrieval and augmentation
+5. backend/database.py - SQLAlchemy ORM models (User, Consultation, etc.)
+6. backend/config.py - Configuration and environment variables
+
+CODING STANDARDS:
+- Use type hints (Python 3.8+ feature)
+- Comprehensive logging at each step
+- Try-except blocks with graceful fallbacks
+- Docstrings for all functions and classes
+- Error messages should be user-friendly, not expose internal details
+
+TESTING:
+- Manual testing via http://127.0.0.1:7860 (frontend)
+- API testing via http://127.0.0.1:8000/docs (Swagger)
+- Check logs for detailed debugging information
+- All errors logged with [Service] prefix for easy grep
+
+FUTURE ENHANCEMENTS:
+- Add unit tests (pytest framework)
+- Implement caching for frequent RAG queries
+- Add more medical specialties and knowledge bases
+- Implement advanced confidence scoring models
+- Add multi-language support
+- Implement feedback loop for model improvement
+- Add doctor review interface for flagged cases
+- Implement appointment scheduling integration
+- Add prescription generation capability
+- Implement HIPAA compliance features
+
+================================================================================
+                        PROJECT STATUS & NOTES
+================================================================================
+
+CURRENT VERSION: 2.0.0
+STATUS: Fully Functional with Comprehensive Error Handling
+
+IMPLEMENTED FEATURES:
+✓ Full consultation pipeline (13 steps)
+✓ Multi-modal input (audio + image)
+✓ Intelligent triage routing (12+ specialties)
+✓ RAG-enhanced diagnosis generation
+✓ Safety guardrails and confidence scoring
+✓ Patient authentication and management
+✓ Consultation history tracking
+✓ Multi-turn conversation memory
+✓ Graceful error handling with fallbacks
+✓ TTS synthesis (premium + free options)
+✓ Database persistence (SQLite/PostgreSQL)
+✓ CORS-enabled REST API
+✓ Interactive API documentation (Swagger)
+
+RECENT IMPROVEMENTS:
+✓ Added Google Speech Recognition fallback for STT
+✓ Comprehensive try-catch error handling in consultation pipeline
+✓ Graceful database transaction rollback on errors
+✓ Null-safe audio URL handling
+✓ Safe defaults for all pipeline steps when APIs fail
+✓ Enhanced logging for debugging
+✓ User-friendly error messages
+
+KNOWN LIMITATIONS:
+- Requires valid Groq API key (primary LLM provider)
+- SQLite not recommended for high-concurrency production use
+- No user interface for doctor review of flagged cases
+- Limited to English language support
+- Medical knowledge base is pre-loaded (not real-time updated)
+
+DEPENDENCIES:
+- All dependencies are production-ready
+- No security vulnerabilities known as of project date
+- All fallback services (Google TTS, Google STT) are free and reliable
+
+================================================================================
+
+Created: 2026
+Last Updated: 2026-04-29
+Project Type: Full-Stack AI Medical Assistant (Educational)
+License: [As specified in repository]
+Disclaimer: This is an educational project. Always consult with qualified physicians
+           for medical decisions. This system should not replace professional medical advice.
+
+================================================================================
+                              END OF SUMMARY
+================================================================================
