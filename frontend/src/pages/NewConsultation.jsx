@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
-import { apiFetch, getAudioUrl, uid, formatTime, buildRecordSummary, getSpecialistsForType } from "../utils/api";
+import { apiFetch, getAudioUrl, uid, formatTime, buildRecordSummary, getSpecialistsForType, likelihoodToPercent, getLanguageLabel } from "../utils/api";
 import Navbar from "../components/Navbar";
 
 const SUGGESTIONS = [
@@ -12,7 +12,7 @@ const SUGGESTIONS = [
 ];
 
 export default function NewConsultation() {
-  const { token, profile, history, setHistory, setToast, hydrate } = useAuth();
+  const { token, profile, history, setHistory, setToast, hydrate, language } = useAuth();
   const navigate = useNavigate();
   const [sessionId, setSessionId] = useState(uid());
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -111,6 +111,7 @@ export default function NewConsultation() {
       const formData = new FormData();
       formData.append("audio", audioFile);
       formData.append("session_id", sessionId);
+      formData.append("language", language);
       if (imageFile) formData.append("image", imageFile);
       setLoadingStep("Processing voice with Whisper STT…");
       const payload = await apiFetch("/consult/", {
@@ -220,9 +221,17 @@ export default function NewConsultation() {
 
                 {/* AI Transcript */}
                 <div className="bubble bubble-ai transcript-card">
-                  <div className="transcript-label">🎙 VOICE TRANSCRIPT</div>
+                  <div className="transcript-label">
+                    🎙 VOICE TRANSCRIPT
+                    {results.language && results.language !== "en" && (
+                      <span className="lang-badge">{getLanguageLabel(results.language)}</span>
+                    )}
+                  </div>
                   <p className="transcript-text">"{results.patient_text}"</p>
-                  <span className="transcript-conf">Whisper STT · {confidence}% confidence</span>
+                  {results.patient_text_en && (
+                    <p className="transcript-translation">🔄 English: "{results.patient_text_en}"</p>
+                  )}
+                  <span className="transcript-conf">Diagnosis Confidence · {confidence}%</span>
                 </div>
 
                 {/* Vision Findings */}
@@ -262,8 +271,8 @@ export default function NewConsultation() {
                       {differentials.map((d, i) => (
                         <div key={i} className="diff-item">
                           <span>{d.condition}</span>
-                          <div className="diff-bar"><div style={{ width: d.likelihood || `${Math.max(20, 90 - i * 20)}%` }} /></div>
-                          <span className="diff-pct">{d.likelihood || `${Math.max(20, 90 - i * 20)}%`}</span>
+                          <div className="diff-bar"><div style={{ width: `${likelihoodToPercent(d.likelihood)}%` }} /></div>
+                          <span className="diff-pct">{likelihoodToPercent(d.likelihood)}%</span>
                         </div>
                       ))}
                     </div>

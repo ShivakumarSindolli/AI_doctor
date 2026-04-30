@@ -20,6 +20,22 @@ Return a JSON object with these exact keys:
   "icd_hints": ["up to 3 likely ICD-10 category names, not codes"],
   "reasoning": "brief triage reasoning"
 }
+
+IMPORTANT specialty routing rules — follow these strictly:
+- Wounds, cuts, lacerations, abrasions, bruises, burns, bites, insect stings, stitches, wound infections → "general" (general medicine / wound care), NOT dermatology
+- Skin diseases only (acne, eczema, psoriasis, rashes, fungal infections, moles, suspicious lesions, dermatitis) → "dermatology"
+- Bone or joint pain, fractures, sprains, muscle tears → "orthopedics"
+- Chest pain, palpitations, blood pressure issues → "cardiology"
+- Headaches, dizziness, numbness, tingling, seizures → "neurology"
+- Stomach pain, nausea, vomiting, diarrhea, acid reflux → "gastroenterology"
+- Cough, breathing difficulty, asthma → "pulmonology"
+- Anxiety, depression, insomnia, mood disorders → "psychiatry"
+- Eye problems → "ophthalmology"
+- Ear, nose, throat, sinus, hearing issues → "ent"
+- Thyroid, diabetes, hormone issues → "endocrinology"
+- Urinary issues, kidney pain → "urology"
+- If unclear or mixed, default to "general"
+
 Return ONLY the JSON, no preamble."""
 
 

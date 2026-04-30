@@ -3,10 +3,10 @@
                         Full Stack AI Medical Assistant
 ================================================================================
 Project Name: AI Doctor Pro
-Version: 2.0.0
+Version: 2.1.0
 Purpose: High-level AI medical assistant with voice, vision, RAG, specialist 
          triage, safety guardrails, patient authentication, and consultation history
-Status: Fully Functional with Error Handling & Fallbacks
+Status: Fully Functional with Enhanced Triage, Confidence Scoring & Specialist Routing
 Created: 2026
 Disclaimer: This is an educational project. Always consult a qualified physician.
 
@@ -117,19 +117,39 @@ SYSTEM FLOW:
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
 │  │ 4. MEDICAL VISION ANALYSIS (Optional)                              │  │
 │  │    ├─ If image provided: Llama 4 Scout analysis                    │  │
-│  │    ├─ Structured output (findings, severity, specialty)             │  │
+│  │    ├─ Structured output (findings, category, severity, specialty)   │  │
+│  │    ├─ Image Category Classification:                                │  │
+│  │    │  ├─ wound_or_injury (cuts, burns, bruises, lacerations)       │  │
+│  │    │  ├─ skin_disease (acne, eczema, rashes, moles)               │  │
+│  │    │  ├─ radiology_scan (X-ray, MRI, CT)                          │  │
+│  │    │  ├─ eye_condition (eye-related findings)                      │  │
+│  │    │  └─ other                                                     │  │
+│  │    ├─ Specialty Routing Rules (built into prompt):                  │  │
+│  │    │  ├─ Wounds/burns/cuts → general (NOT dermatology)             │  │
+│  │    │  ├─ Skin diseases → dermatology                               │  │
+│  │    │  ├─ Fractures/joint injuries → orthopedics                    │  │
+│  │    │  └─ Eye conditions → ophthalmology                            │  │
 │  │    ├─ Error Handling: Continue without vision if fails              │  │
-│  │    └─ Output: Vision findings JSON                                  │  │
+│  │    └─ Output: Vision findings JSON with category                    │  │
 │  └──────────────────────────────────────────────────────────────────────┘  │
 │                         │                                                    │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
 │  │ 5. TRIAGE & ROUTING                                                 │  │
 │  │    ├─ Analyze patient text + vision findings                        │  │
-│  │    ├─ Route to appropriate specialty:                              │  │
-│  │    │  ├─ Dermatology, Cardiology, Neurology, Orthopedics          │  │
-│  │    │  ├─ Gastroenterology, Pulmonology, Psychiatry                │  │
-│  │    │  ├─ Ophthalmology, ENT, Endocrinology, Urology               │  │
-│  │    │  └─ General Medicine                                          │  │
+│  │    ├─ Explicit Specialty Routing Rules:                             │  │
+│  │    │  ├─ Wounds/cuts/burns/bites → General Medicine                │  │
+│  │    │  ├─ Skin diseases (acne/eczema/rash) → Dermatology            │  │
+│  │    │  ├─ Bone/joint pain/fractures → Orthopedics                   │  │
+│  │    │  ├─ Chest pain/palpitations → Cardiology                      │  │
+│  │    │  ├─ Headaches/numbness/seizures → Neurology                   │  │
+│  │    │  ├─ Stomach/nausea/diarrhea → Gastroenterology                │  │
+│  │    │  ├─ Cough/breathing difficulty → Pulmonology                  │  │
+│  │    │  ├─ Anxiety/depression/mood → Psychiatry                      │  │
+│  │    │  ├─ Eye problems → Ophthalmology                              │  │
+│  │    │  ├─ Ear/nose/throat → ENT                                     │  │
+│  │    │  ├─ Thyroid/diabetes/hormones → Endocrinology                 │  │
+│  │    │  ├─ Urinary/kidney issues → Urology                           │  │
+│  │    │  └─ Unclear/mixed → General Medicine (default)                │  │
 │  │    ├─ Urgency Classification:                                       │  │
 │  │    │  ├─ Emergency (immediate physician consult)                    │  │
 │  │    │  ├─ Urgent (same-day attention recommended)                   │  │
@@ -182,12 +202,16 @@ SYSTEM FLOW:
 │  └──────────────────────────────────────────────────────────────────────┘  │
 │                         │                                                    │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │ 10. SAFETY GUARDRAILS & CONFIDENCE SCORING                          │  │
-│  │     ├─ Confidence Calculation:                                      │  │
-│  │     │  ├─ Patient symptom clarity score (0-1)                      │  │
-│  │     │  ├─ LLM response certainty (0-1)                             │  │
-│  │     │  ├─ Vision analysis confidence if image provided              │  │
-│  │     │  └─ Combined weighted score                                   │  │
+│  │ 10. SAFETY GUARDRAILS & MULTI-FACTOR CONFIDENCE SCORING             │  │
+│  │     ├─ Multi-Factor Confidence Calculation (v2.1):                  │  │
+│  │     │  ├─ Factor 1: Symptom clarity (word count)    [wt: 15%]      │  │
+│  │     │  ├─ Factor 2: Diagnosis quality (likelihood   [wt: 40%]      │  │
+│  │     │  │            + differential count)                           │  │
+│  │     │  ├─ Factor 3: Vision confidence (if image)    [wt: 25%*]     │  │
+│  │     │  ├─ Factor 4: Response hedging penalty         [wt: 25%]      │  │
+│  │     │  ├─ Factor 5: Referral flag penalty            [wt: 20%]      │  │
+│  │     │  └─ (*weights redistributed when vision absent)              │  │
+│  │     ├─ Likelihood Conversion: high→0.85, medium→0.55, low→0.25     │  │
 │  │     ├─ Confidence Threshold: 0.4 (below = escalate to doctor)       │  │
 │  │     ├─ Safety Checks:                                               │  │
 │  │     │  ├─ High-risk condition detection                             │  │
@@ -485,14 +509,17 @@ ALL ERRORS:
 
 2. INTELLIGENT TRIAGE:
    ✓ 12+ medical specialties supported
+   ✓ Explicit specialty routing rules (wound→general, skin→dermatology, etc.)
+   ✓ Vision image category classification (wound_or_injury / skin_disease / radiology_scan)
    ✓ Urgency classification (emergency/urgent/routine)
    ✓ Emergency fast-path detection
    ✓ ICD-10 category hint generation
+   ✓ Proper wound vs skin disease distinction (v2.1 fix)
 
 3. DIAGNOSIS ENGINE:
    ✓ Differential diagnosis generation
-   ✓ Probability scoring (0-1 scale)
-   ✓ Confidence scoring with multi-factor calculation
+   ✓ Likelihood scoring (high/medium/low → converted to percentages)
+   ✓ Multi-factor confidence scoring (5 weighted factors)
    ✓ Reasoning explanation for each diagnosis
    ✓ ICD-10 code assignment
 
@@ -504,6 +531,8 @@ ALL ERRORS:
    ✓ Contextual diagnosis enhancement
 
 5. SAFETY GUARDRAILS:
+   ✓ Multi-factor confidence scoring (symptom clarity, diagnosis quality,
+     vision confidence, response hedging, referral flag)
    ✓ Confidence threshold enforcement (0.4 minimum)
    ✓ High-risk condition detection
    ✓ Medication conflict checking
@@ -654,12 +683,10 @@ TESTING:
 FUTURE ENHANCEMENTS:
 - Add unit tests (pytest framework)
 - Implement caching for frequent RAG queries
-- Add more medical specialties and knowledge bases
-- Implement advanced confidence scoring models
+- Add more medical knowledge bases per specialty
 - Add multi-language support
 - Implement feedback loop for model improvement
 - Add doctor review interface for flagged cases
-- Implement appointment scheduling integration
 - Add prescription generation capability
 - Implement HIPAA compliance features
 
@@ -667,15 +694,18 @@ FUTURE ENHANCEMENTS:
                         PROJECT STATUS & NOTES
 ================================================================================
 
-CURRENT VERSION: 2.0.0
-STATUS: Fully Functional with Comprehensive Error Handling
+CURRENT VERSION: 2.1.0
+STATUS: Fully Functional with Enhanced Triage, Confidence Scoring & Specialist Routing
 
 IMPLEMENTED FEATURES:
 ✓ Full consultation pipeline (13 steps)
 ✓ Multi-modal input (audio + image)
-✓ Intelligent triage routing (12+ specialties)
+✓ Intelligent triage routing (12+ specialties with explicit routing rules)
 ✓ RAG-enhanced diagnosis generation
-✓ Safety guardrails and confidence scoring
+✓ Multi-factor confidence scoring (5 weighted factors)
+✓ Safety guardrails with enhanced accuracy
+✓ Full specialist directory (all 12 specialties + emergency)
+✓ Appointment booking system with specialist matching
 ✓ Patient authentication and management
 ✓ Consultation history tracking
 ✓ Multi-turn conversation memory
@@ -685,7 +715,25 @@ IMPLEMENTED FEATURES:
 ✓ CORS-enabled REST API
 ✓ Interactive API documentation (Swagger)
 
-RECENT IMPROVEMENTS:
+RECENT IMPROVEMENTS (v2.1.0 — 2026-04-30):
+✓ Multi-factor confidence scoring system (replaced static 0.75 base)
+  - Factors: symptom clarity, diagnosis quality, vision confidence,
+    response hedging penalty, referral flag penalty
+  - Weighted combination with dynamic weights (vision vs no-vision)
+✓ Fixed specialist routing for all 12 specialties
+  - Added missing specialists: gastroenterology, pulmonology, psychiatry,
+    ENT, urology (were falling back to general)
+  - Fixed endocrine→endocrinology key mismatch
+✓ Vision image category classification (wound_or_injury vs skin_disease)
+  - Wounds/cuts/burns now route to general medicine, NOT dermatology
+  - Skin diseases (acne/eczema/rash) correctly route to dermatology
+✓ Explicit triage routing rules for all 12 specialties
+✓ Likelihood-to-percentage conversion for differential diagnosis display
+  - Fixed: "high"/"medium"/"low" strings now properly shown as 85%/55%/25%
+✓ Fixed misleading "Whisper STT confidence" label → "Diagnosis Confidence"
+✓ Added doctor images for all new specialist entries in booking page
+
+PREVIOUS IMPROVEMENTS (v2.0.0):
 ✓ Added Google Speech Recognition fallback for STT
 ✓ Comprehensive try-catch error handling in consultation pipeline
 ✓ Graceful database transaction rollback on errors
@@ -709,7 +757,7 @@ DEPENDENCIES:
 ================================================================================
 
 Created: 2026
-Last Updated: 2026-04-29
+Last Updated: 2026-04-30
 Project Type: Full-Stack AI Medical Assistant (Educational)
 License: [As specified in repository]
 Disclaimer: This is an educational project. Always consult with qualified physicians

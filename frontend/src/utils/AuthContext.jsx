@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
   const [appointments, setAppointments] = useState(() => {
     try { return JSON.parse(localStorage.getItem("mediai_appointments") || "[]"); } catch { return []; }
   });
+  const [language, setLanguageState] = useState(() => localStorage.getItem("mediai_language") || "en");
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
 
@@ -24,6 +25,12 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     localStorage.setItem("mediai_appointments", JSON.stringify(appointments));
   }, [appointments]);
+
+  // Persist language selection
+  function setLanguage(lang) {
+    setLanguageState(lang);
+    localStorage.setItem("mediai_language", lang);
+  }
 
   function persistToken(t) {
     setToken(t);
@@ -80,7 +87,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, profile, setProfile, history, setHistory, appointments, addAppointment, cancelAppointment, loading, toast, setToast, login, register, logout, hydrate, persistToken }}
+      value={{ token, profile, setProfile, history, setHistory, appointments, addAppointment, cancelAppointment, language, setLanguage, loading, toast, setToast, login, register, logout, hydrate, persistToken }}
     >
       {children}
     </AuthContext.Provider>

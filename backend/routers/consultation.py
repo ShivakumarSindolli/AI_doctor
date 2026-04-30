@@ -14,6 +14,7 @@ from backend.services.rag_service import retrieve_context, rag_query
 from backend.services.memory_service import get_history, save_turn
 from backend.services.safety_service import apply_safety_layer, score_confidence, check_emergency
 from backend.services.tts_service import text_to_speech
+from backend.services.translation_service import translate_to_english, translate_from_english
 from backend.agents.triage_agent import triage
 from backend.agents.diagnosis_agent import diagnose
 from backend.agents.specialist_agents import generate_specialist_response
@@ -45,14 +46,6 @@ AUDIO_MIME_TO_EXT = {
 def _safe_audio_extension(upload: UploadFile, default_ext: str = ".webm") -> str:
     """
     Determine the correct file extension for a saved audio file.
-
-    FIXED vs original _safe_extension():
-    - Checks UploadFile.content_type (MIME type from browser)
-    - Falls back to filename extension
-    - Falls back to default (.webm)
-
-    This ensures stt_service._convert_to_wav() receives a file with
-    the correct extension so ffmpeg knows which decoder to use.
     """
     # 1. Content-type header (most reliable — set by browser MediaRecorder)
     ct = (upload.content_type or "").strip().lower()
@@ -95,6 +88,7 @@ async def consult(
     audio:       UploadFile  = File(...),
     image:       UploadFile  = File(None),
     session_id:  str         = Form(None),
+    language:    str         = Form("en"),
     db:          Session     = Depends(get_db),
     current_user:User        = Depends(get_current_user),
 ):
@@ -102,10 +96,13 @@ async def consult(
     if not session_id:
         session_id = str(uuid.uuid4())
 
+    # ── Validate language ──────────────────────────────────────────────────────
+    from backend.config import SUPPORTED_LANGUAGES
+    if language not in SUPPORTED_LANGUAGES:
+        language = "en"
+    logger.info(f"[CONSULT] Language: {language} ({SUPPORTED_LANGUAGES[language]['name']})")
+
     # ── Save uploaded audio WITH correct extension ─────────────────────────────
-    # FIX: use _safe_audio_extension() instead of _safe_extension()
-    # This reads the content-type header to get .webm / .ogg / .mp4 etc.
-    # stt_service then knows which ffmpeg decoder to use for conversion.
     audio_ext  = _safe_audio_extension(audio, default_ext=".webm")
     audio_path = os.path.join(UPLOAD_DIR, f"{session_id}_audio{audio_ext}")
 
@@ -134,9 +131,11 @@ async def consult(
         with open(image_path, "wb") as f:
             shutil.copyfileobj(image.file, f)
 
-    # ── Step 1: STT ────────────────────────────────────────────────────────────
+    # ── Step 1: STT (multilingual) ────────────────────────────────────────────
     try:
-        patient_text = transcribe_audio(audio_path)
+        stt_result = transcribe_audio(audio_path, language=language)
+        patient_text_original = stt_result["text"]
+        detected_language = stt_result.get("language", language)
     except Exception as e:
         error_msg = str(e)
         logger.error(f"[CONSULT] STT error: {error_msg}")
@@ -148,11 +147,23 @@ async def consult(
             )
         )
 
-    if not patient_text:
+    if not patient_text_original:
         raise HTTPException(
             status_code=422,
             detail="Could not transcribe audio. Please ensure the recording contains speech."
         )
+
+    # ── Step 1b: Translate to English (if not English) ─────────────────────────
+    is_english = detected_language.startswith("en")
+    if is_english:
+        patient_text = patient_text_original
+    else:
+        try:
+            patient_text = translate_to_english(patient_text_original, detected_language)
+            logger.info(f"[CONSULT] Translated to English: {patient_text[:80]}...")
+        except Exception as e:
+            logger.error(f"[CONSULT] Translation to English failed: {e}")
+            patient_text = patient_text_original  # fallback: use original
 
     # ── Step 2: Emergency check (fast path) ───────────────────────────────────
     if check_emergency(patient_text):
@@ -160,15 +171,22 @@ async def consult(
             "This sounds like a medical emergency. Please call emergency services "
             "(112 or your local emergency number) immediately or go to the nearest emergency room."
         )
+        # Translate emergency response if needed
+        if not is_english:
+            try:
+                response_text = translate_from_english(response_text, detected_language)
+            except Exception:
+                pass
         try:
-            audio_out = text_to_speech(response_text)
+            audio_out = text_to_speech(response_text, language=detected_language)
         except Exception as e:
             logger.error(f"[CONSULT] TTS error: {e}")
             audio_out = None
 
         return {
             "session_id":      session_id,
-            "patient_text":    patient_text,
+            "patient_text":    patient_text_original,
+            "patient_text_en": patient_text,
             "specialist":      "emergency",
             "urgency":         "emergency",
             "diagnosis":       {},
@@ -176,6 +194,7 @@ async def consult(
             "confidence":      1.0,
             "icd_codes":       [],
             "flagged":         True,
+            "language":        detected_language,
             "audio_path":      audio_out,
             "audio_url":       _public_audio_url(audio_out) if audio_out else None,
         }
@@ -190,7 +209,7 @@ async def consult(
             logger.error(f"[CONSULT] Vision error (continuing): {e}")
             vision_findings = None
 
-    # ── Step 4: Triage ─────────────────────────────────────────────────────────
+    # ── Step 4: Triage (uses English text) ─────────────────────────────────────
     try:
         triage_result = triage(patient_text, vision_findings)
         specialty     = triage_result.get("specialty", "general")
@@ -215,7 +234,7 @@ async def consult(
         logger.warning(f"[CONSULT] History error: {e}")
         history = []
 
-    # ── Step 7: Structured diagnosis ──────────────────────────────────────────
+    # ── Step 7: Structured diagnosis (uses English text) ──────────────────────
     try:
         patient_profile = (
             f"Name: {current_user.full_name}, Age: {current_user.age}, "
@@ -237,7 +256,7 @@ async def consult(
             "icd_codes": [],
         }
 
-    # ── Step 8: Specialist response ───────────────────────────────────────────
+    # ── Step 8: Specialist response (in English) ──────────────────────────────
     try:
         raw_response = generate_specialist_response(specialty, diagnosis, patient_text)
     except Exception as e:
@@ -247,22 +266,33 @@ async def consult(
             "Please consult with your doctor."
         )
 
-    # ── Step 9: Safety layer ──────────────────────────────────────────────────
+    # ── Step 9: Safety layer (in English) ─────────────────────────────────────
     try:
         vision_conf   = vision_findings.get("confidence") if vision_findings else None
-        confidence    = score_confidence(patient_text, raw_response, vision_conf)
+        confidence    = score_confidence(patient_text, raw_response, vision_conf, diagnosis)
         safety_result = apply_safety_layer(patient_text, raw_response, confidence)
-        final_response = safety_result["final_response"]
+        final_response_en = safety_result["final_response"]
         flagged        = safety_result["flagged"]
     except Exception as e:
         logger.error(f"[CONSULT] Safety layer error: {e}")
-        final_response = raw_response
+        final_response_en = raw_response
         confidence     = 0.5
         flagged        = True
 
-    # ── Step 10: TTS ───────────────────────────────────────────────────────────
+    # ── Step 9b: Translate response to patient language ────────────────────────
+    if is_english:
+        final_response = final_response_en
+    else:
+        try:
+            final_response = translate_from_english(final_response_en, detected_language)
+            logger.info(f"[CONSULT] Response translated to {detected_language}")
+        except Exception as e:
+            logger.error(f"[CONSULT] Translation to {detected_language} failed: {e}")
+            final_response = final_response_en  # fallback: English
+
+    # ── Step 10: TTS (in patient language) ─────────────────────────────────────
     try:
-        audio_out = text_to_speech(final_response)
+        audio_out = text_to_speech(final_response, language=detected_language)
     except Exception as e:
         logger.warning(f"[CONSULT] TTS error (continuing without audio): {e}")
         audio_out = None
@@ -272,7 +302,7 @@ async def consult(
         record = Consultation(
             user_id=current_user.id,
             session_id=session_id,
-            patient_text=patient_text,
+            patient_text=patient_text_original,
             image_path=image_path,
             specialist=specialty,
             diagnosis=json.dumps(diagnosis),
@@ -282,7 +312,7 @@ async def consult(
             flagged=flagged,
         )
         db.add(record)
-        save_turn(session_id, "user",      patient_text,  db)
+        save_turn(session_id, "user",      patient_text_original, db)
         save_turn(session_id, "assistant", final_response, db)
         db.commit()
     except Exception as e:
@@ -291,12 +321,14 @@ async def consult(
 
     logger.info(
         f"[CONSULT] Done | session={session_id[:8]} | "
-        f"specialty={specialty} | confidence={confidence:.2f} | flagged={flagged}"
+        f"specialty={specialty} | confidence={confidence:.2f} | "
+        f"flagged={flagged} | lang={detected_language}"
     )
 
     return {
         "session_id":      session_id,
-        "patient_text":    patient_text,
+        "patient_text":    patient_text_original,
+        "patient_text_en": patient_text if not is_english else None,
         "specialist":      specialty,
         "urgency":         urgency,
         "triage":          triage_result,
@@ -306,6 +338,7 @@ async def consult(
         "confidence":      confidence,
         "icd_codes":       icd_hints,
         "flagged":         flagged,
+        "language":        detected_language,
         "audio_path":      audio_out,
         "audio_url":       _public_audio_url(audio_out) if audio_out else None,
     }

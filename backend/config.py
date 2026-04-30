@@ -30,3 +30,11 @@ RAG_TOP_K        = 5                             # top chunks to retrieve
 # ── Safety ─────────────────────────────────────────────────────────────────────
 CONFIDENCE_THRESHOLD = 0.4                       # below this → always refer to doctor
 MAX_HISTORY_TURNS    = 10                        # memory window per session
+
+# ── Multilingual ───────────────────────────────────────────────────────
+SUPPORTED_LANGUAGES = {
+    "en": {"name": "English",  "native": "English",  "stt": "en", "tts": "en", "google_stt": "en-US"},
+    "hi": {"name": "Hindi",    "native": "हिन्दी",    "stt": "hi", "tts": "hi", "google_stt": "hi-IN"},
+    "kn": {"name": "Kannada",  "native": "ಕನ್ನಡ",    "stt": "kn", "tts": "kn", "google_stt": "kn-IN"},
+    "mr": {"name": "Marathi",  "native": "मराठी",     "stt": "mr", "tts": "mr", "google_stt": "mr-IN"},
+}

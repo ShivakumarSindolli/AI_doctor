@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
-import { buildRecordSummary, formatDate, getUrgencyLabel, getAudioUrl } from "../utils/api";
+import { buildRecordSummary, formatDate, getUrgencyLabel, getAudioUrl, likelihoodToPercent } from "../utils/api";
 import Navbar from "../components/Navbar";
 
 export default function ConsultationDetail() {
@@ -41,7 +41,7 @@ export default function ConsultationDetail() {
             <div className="detail-card">
               <h3>🎙 Voice Transcript</h3>
               <blockquote>"{record.patient_text}"</blockquote>
-              <span className="detail-meta">Whisper STT · {conf}% confidence</span>
+              <span className="detail-meta">Diagnosis Confidence · {conf}%</span>
             </div>
 
             {/* Vision */}
@@ -65,8 +65,8 @@ export default function ConsultationDetail() {
                 <div className="detail-diffs">{differentials.map((d, i) => (
                   <div key={i} className="diff-item">
                     <span>{d.condition}</span>
-                    <div className="diff-bar"><div style={{ width: d.likelihood || `${Math.max(20, 90 - i * 20)}%` }} /></div>
-                    <span className="diff-pct">{d.likelihood || `${Math.max(20, 90 - i * 20)}%`}</span>
+                    <div className="diff-bar"><div style={{ width: `${likelihoodToPercent(d.likelihood)}%` }} /></div>
+                    <span className="diff-pct">{likelihoodToPercent(d.likelihood)}%</span>
                   </div>
                 ))}</div>
               )}

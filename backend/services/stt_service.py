@@ -4,7 +4,7 @@ import tempfile
 import subprocess
 import speech_recognition as sr
 from groq import Groq
-from backend.config import GROQ_API_KEY, STT_MODEL
+from backend.config import GROQ_API_KEY, STT_MODEL, SUPPORTED_LANGUAGES
 
 logger = logging.getLogger(__name__)
 
@@ -46,11 +46,6 @@ def _convert_to_wav(audio_filepath: str) -> str:
     """
     Convert audio file to WAV format using ffmpeg.
     Returns path to WAV file (original if already WAV, converted temp file otherwise).
-
-    FIXED vs original:
-    - Returns tuple (path, was_converted) so callers know to clean up
-    - Validates output file has actual content
-    - Logs full ffmpeg stderr for easier debugging
     """
     try:
         ext = os.path.splitext(audio_filepath)[1].lower()
@@ -102,24 +97,11 @@ def _convert_to_wav(audio_filepath: str) -> str:
         return audio_filepath
 
 
-def transcribe_audio_groq(audio_filepath: str) -> str:
+def transcribe_audio_groq(audio_filepath: str, language: str = None) -> dict:
     """
     Transcribe using Groq Whisper API.
-
-    ══ THE FIX ══════════════════════════════════════════════════════════════════
-    Original code:
-        with open(wav_filepath, "rb") as f:
-            result = client.audio.transcriptions.create(file=f, ...)
-
-    Problem: Passing just `f` (a raw file object) gives Groq NO format information.
-    Groq tries to guess — defaults to WAV/AIFF/FLAC — fails on WebM recordings.
-
-    Fixed code:
-        file=("recording.wav", f, "audio/wav")   ← named tuple
-
-    Groq reads the filename extension from the tuple to detect the codec.
-    Since we convert to WAV first, we always send ("recording.wav", ...).
-    ═════════════════════════════════════════════════════════════════════════════
+    Supports multilingual transcription.
+    Returns dict with 'text' and 'language' keys.
     """
     wav_filepath = _convert_to_wav(audio_filepath)
     temp_file_created = (wav_filepath != audio_filepath)
@@ -136,17 +118,48 @@ def transcribe_audio_groq(audio_filepath: str) -> str:
 
         client = Groq(api_key=GROQ_API_KEY)
 
-        with open(wav_filepath, "rb") as f:
-            result = client.audio.transcriptions.create(
-                model=STT_MODEL,                           # "whisper-large-v3"
-                file=("recording.wav", f, "audio/wav"),   # ← FIXED: named tuple
-                language="en",
-                response_format="text",
-                temperature=0.0,
-            )
+        # Build transcription params
+        # If language is specified (not 'auto'), pass it to Whisper for better accuracy
+        # If 'auto' or None, omit language param so Whisper auto-detects
+        whisper_params = {
+            "model": STT_MODEL,
+            "file": ("recording.wav", open(wav_filepath, "rb"), "audio/wav"),
+            "response_format": "verbose_json",  # gives us detected language
+            "temperature": 0.0,
+        }
 
-        text = result if isinstance(result, str) else result.text
-        return text.strip()
+        stt_lang = None
+        if language and language != "auto":
+            lang_meta = SUPPORTED_LANGUAGES.get(language)
+            if lang_meta:
+                stt_lang = lang_meta["stt"]
+                whisper_params["language"] = stt_lang
+                logger.info(f"[STT] Language hint: {stt_lang} ({lang_meta['name']})")
+
+        with open(wav_filepath, "rb") as f:
+            whisper_params["file"] = ("recording.wav", f, "audio/wav")
+            result = client.audio.transcriptions.create(**whisper_params)
+
+        # Extract text and detected language
+        if hasattr(result, "text"):
+            text = result.text.strip()
+        elif isinstance(result, str):
+            text = result.strip()
+        else:
+            text = str(result).strip()
+
+        # Try to get detected language from verbose_json response
+        detected_lang = stt_lang or language or "en"
+        if hasattr(result, "language"):
+            detected_lang = result.language or detected_lang
+
+        # Map Whisper language codes to our codes
+        lang_map = {"english": "en", "hindi": "hi", "kannada": "kn", "marathi": "mr"}
+        if detected_lang in lang_map:
+            detected_lang = lang_map[detected_lang]
+
+        logger.info(f"[STT] Groq success: {len(text)} chars, detected_lang={detected_lang}")
+        return {"text": text, "language": detected_lang}
 
     finally:
         if temp_file_created and os.path.exists(wav_filepath):
@@ -156,14 +169,23 @@ def transcribe_audio_groq(audio_filepath: str) -> str:
                 logger.warning(f"[STT] Failed to cleanup temp file: {e}")
 
 
-def transcribe_audio_google(audio_filepath: str) -> str:
+def transcribe_audio_google(audio_filepath: str, language: str = None) -> dict:
     """
     Fallback: Transcribe using Google Speech Recognition (free, no API key needed).
+    Supports multilingual recognition.
+    Returns dict with 'text' and 'language' keys.
     """
     wav_filepath = _convert_to_wav(audio_filepath)
     temp_file_created = (wav_filepath != audio_filepath)
 
     recognizer = sr.Recognizer()
+
+    # Determine Google STT language code
+    google_lang = "en-US"
+    lang_code = language or "en"
+    lang_meta = SUPPORTED_LANGUAGES.get(lang_code)
+    if lang_meta:
+        google_lang = lang_meta["google_stt"]
 
     try:
         if not os.path.exists(wav_filepath):
@@ -173,8 +195,9 @@ def transcribe_audio_google(audio_filepath: str) -> str:
             recognizer.adjust_for_ambient_noise(source, duration=0.5)
             audio = recognizer.record(source)
 
-        text = recognizer.recognize_google(audio, language="en-US")
-        return text.strip()
+        logger.info(f"[STT] Google STT with language: {google_lang}")
+        text = recognizer.recognize_google(audio, language=google_lang)
+        return {"text": text.strip(), "language": lang_code}
 
     except sr.UnknownValueError:
         raise RuntimeError("Google STT: Could not understand the audio. Please speak clearly.")
@@ -188,10 +211,10 @@ def transcribe_audio_google(audio_filepath: str) -> str:
                 logger.warning(f"[STT] Failed to cleanup temp file: {e}")
 
 
-def transcribe_audio(audio_filepath: str) -> str:
+def transcribe_audio(audio_filepath: str, language: str = None) -> dict:
     """
     Transcribe an audio file. Groq Whisper (primary) → Google STT (fallback).
-    Same signature as before — consultation.py calls this with a file path.
+    Returns dict: {"text": "transcribed text", "language": "detected_lang_code"}
     """
     if not audio_filepath:
         raise ValueError("No audio file provided for transcription.")
@@ -208,15 +231,15 @@ def transcribe_audio(audio_filepath: str) -> str:
 
     logger.info(
         f"[STT] Transcribing: {os.path.basename(audio_filepath)} "
-        f"({file_size / 1024:.1f} KB)"
+        f"({file_size / 1024:.1f} KB) | language={language or 'auto'}"
     )
 
     # ── Primary: Groq Whisper ─────────────────────────────────────────────────
     if GROQ_API_KEY:
         try:
-            text = transcribe_audio_groq(audio_filepath)
-            logger.info(f"[STT] Groq success: {len(text)} chars")
-            return text
+            result = transcribe_audio_groq(audio_filepath, language)
+            logger.info(f"[STT] Groq success: {len(result['text'])} chars, lang={result['language']}")
+            return result
         except Exception as e:
             logger.warning(f"[STT] Groq failed: {e}. Falling back to Google Speech Recognition...")
     else:
@@ -224,9 +247,9 @@ def transcribe_audio(audio_filepath: str) -> str:
 
     # ── Fallback: Google Speech Recognition ──────────────────────────────────
     try:
-        text = transcribe_audio_google(audio_filepath)
-        logger.info(f"[STT] Google STT success: {len(text)} chars")
-        return text
+        result = transcribe_audio_google(audio_filepath, language)
+        logger.info(f"[STT] Google STT success: {len(result['text'])} chars, lang={result['language']}")
+        return result
     except Exception as e:
         logger.error(f"[STT] All STT methods failed: {e}")
         raise RuntimeError(f"Speech-to-text failed: {e}")
