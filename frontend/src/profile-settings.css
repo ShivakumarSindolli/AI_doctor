@@ -57,27 +57,138 @@
 .sf-usage-bar div{height:100%;border-radius:4px;background:linear-gradient(135deg,var(--blue),var(--indigo))}
 
 /* ═══════════════════ RESPONSIVE ═══════════════════ */
+
+/* Tablet */
 @media(max-width:1240px){
   .hero-section,.feature-grid,.preview-frame,.detail-grid,.profile-layout{grid-template-columns:1fr}
   .dash-stats-row{grid-template-columns:repeat(2,1fr)}
   .preview-sidebar{border-right:none;border-bottom:1px solid var(--border);padding-bottom:16px}
   .settings-layout{grid-template-columns:1fr}
   .settings-tabs{position:static;display:flex;flex-wrap:wrap;gap:8px}
+  .report-grid-2{grid-template-columns:repeat(2,1fr)}
+  .appt-grid{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+  .preview-frame{min-height:auto}
+  .preview-actions{grid-template-columns:repeat(2,1fr)}
 }
+
+/* Mobile */
 @media(max-width:900px){
-  .app-navbar{flex-wrap:wrap;margin:8px 10px 0;padding:10px 16px}
+  .app-navbar{flex-wrap:wrap;margin:8px 10px 0;padding:10px 14px;border-radius:18px}
+  .nav-brand-text{font-size:.95rem}
   .nav-center{order:3;width:100%;justify-content:center;gap:4px;padding-top:8px;border-top:1px solid var(--border)}
+  .nav-link{padding:8px 12px;font-size:.82rem}
+  .nav-cta-btn{padding:8px 14px;font-size:.85rem}
+  .nav-user-name{display:none}
+  .nav-lang-label{display:none}
+  .nav-right{gap:8px}
   .consult-layout{grid-template-columns:1fr}
   .consult-sidebar{display:none}
   .cs-toggle{display:none}
-  .dash-stats-row,.dash-quick-actions{grid-template-columns:1fr}
+  .consult-header-bar{padding:12px 16px}
+  .consult-header-left h2{font-size:.95rem}
+  .consult-feed{padding:16px;max-height:calc(100vh - 380px)}
+  .consult-suggestions{grid-template-columns:1fr}
   .input-zones{grid-template-columns:1fr}
-  .landing-nav{flex-direction:column;align-items:flex-start}
-  .landing-links{flex-wrap:wrap}
-  .hero-buttons{flex-direction:column}
+  .input-zone{min-height:100px;padding:14px}
+  .mic-btn{width:52px;height:52px;font-size:1.2rem}
+  .zone-icon{font-size:1.5rem}
+  .zone-label{font-size:.82rem}
+  .consult-bottom-bar{padding:12px 16px}
+  .bubble{padding:14px 16px;max-width:100%;border-radius:16px}
+  .bubble-thumb{width:48px;height:44px}
+  .diag-header{flex-direction:column;gap:10px}
+  .diag-thumb{width:100%;height:120px;border-radius:12px}
+  .diff-item{flex-direction:column;align-items:start;gap:6px}
+  .diff-item>span:first-child{min-width:auto}
+  .dash-stats-row,.dash-quick-actions{grid-template-columns:1fr}
+  .dash-model-grid{grid-template-columns:1fr}
+  .landing-page{padding:12px}
+  .landing-nav{flex-direction:column;align-items:stretch;padding:14px 18px;border-radius:18px;gap:12px}
+  .landing-links{flex-wrap:wrap;justify-content:center;gap:10px}
+  .landing-actions{justify-content:center}
+  .hero-section{padding:24px 0 20px;gap:24px}
+  .hero-copy h1{font-size:clamp(2rem,8vw,3rem)}
+  .hero-visual{min-height:300px}
+  .doctor-hero{width:min(100%,360px)}
+  .hero-visual-card{padding:12px 14px}
+  .hero-visual-card.top{top:40px;left:0}
+  .hero-visual-card.bottom{right:0;bottom:50px}
+  .hero-buttons{flex-direction:column;gap:10px}
+  .hero-stats{gap:10px}
+  .stat-card{min-width:120px;padding:14px 16px}
+  .feature-grid{grid-template-columns:1fr;gap:12px}
+  .feature-card{padding:20px}
+  .preview-frame{padding:12px;grid-template-columns:1fr}
+  .preview-sidebar{display:none}
+  .preview-main{padding:10px 16px 16px}
+  .cta-section{flex-direction:column;text-align:center;padding:24px 20px}
+  .history-page,.report-page,.detail-page,.appt-page{padding:16px 12px}
+  .history-page h1,.appt-page h1,.settings-page h1,.profile-page h1{font-size:1.4rem}
+  .history-header{flex-direction:column;gap:12px}
+  .detail-grid{grid-template-columns:1fr}
+  .detail-info-grid{grid-template-columns:1fr}
+  .report-paper{padding:20px}
+  .report-header-section{flex-direction:column;gap:12px;align-items:start}
   .report-grid-2{grid-template-columns:1fr 1fr}
-  .consult-feed{max-height:calc(100vh - 400px)}
+  .report-appt-grid{grid-template-columns:1fr}
+  .report-meta{gap:8px}
+  .profile-layout{grid-template-columns:1fr}
+  .profile-page,.settings-page{padding:16px 12px}
+  .pf-row{grid-template-columns:1fr}
+  .appt-grid{grid-template-columns:1fr}
+  .auth-modal{width:min(480px,calc(100% - 24px));border-radius:24px;padding:12px}
+  .auth-form{padding:12px 8px 6px}
+  .ssc-doctors-preview{flex-direction:column;gap:10px}
+  .booking-page{padding:16px 12px}
+  .booking-page h1{font-size:1.4rem}
+  .bkp-doctors-grid{grid-template-columns:1fr}
+  .bkp-modal{max-width:calc(100% - 24px);border-radius:24px}
+  .bkp-controls{gap:10px}
+  .bkp-filter{padding:6px 14px;font-size:.8rem}
+  .bkp-doc-img-wrap{height:160px}
+  .bkp-confirmed-details{padding:16px}
 }
+
+/* Small Mobile */
+@media(max-width:480px){
+  .app-navbar{margin:4px 6px 0;padding:8px 10px}
+  .nav-brand-text{font-size:.88rem}
+  .nav-center{gap:2px}
+  .nav-link{padding:6px 10px;font-size:.78rem}
+  .nav-cta-btn{padding:7px 12px;font-size:.8rem;gap:4px}
+  .nav-bell{padding:6px}
+  .hero-copy h1{font-size:1.8rem}
+  .hero-visual{min-height:220px}
+  .hero-visual-card{display:none}
+  .stat-card{min-width:100px;padding:12px}
+  .stat-card strong{font-size:1.2rem}
+  .auth-modal{border-radius:20px;padding:10px}
+  .auth-form h3{font-size:1.05rem}
+  .double-fields{flex-direction:column;gap:10px}
+  .consult-feed{padding:12px}
+  .input-zone{min-height:80px;padding:12px}
+  .zone-pills{display:none}
+  .bubble{padding:12px 14px;font-size:.88rem}
+  .diag-header-info h3{font-size:1rem}
+  .report-paper{padding:14px}
+  .report-section h3{font-size:.92rem}
+  .bkp-doc-body{padding:14px}
+  .bkp-doc-name{font-size:1rem}
+  .bkp-doc-price{padding:12px 14px}
+  .bkp-side-card{padding:16px}
+  .bkp-date-chip,.bkp-time-chip{padding:6px 10px;font-size:.8rem}
+  .appt-card{padding:16px}
+  .dp-header{padding:20px 16px}
+  .dp-header h1{font-size:1.3rem}
+  .dp-avatar{width:56px;height:56px;font-size:1.4rem}
+  .dp-stats{gap:16px}
+  .dp-stat strong{font-size:1.4rem}
+  .dp-content{padding:16px}
+  .dp-tabs{padding:12px 16px 0}
+  .dp-form-row{grid-template-columns:1fr}
+  .dp-profile-edit{grid-template-columns:1fr}
+}
+
 @media print{
   .app-navbar,.report-actions,.nav-dropdown,.toast,.loading-ribbon{display:none!important}
   .report-paper{box-shadow:none;padding:20px}

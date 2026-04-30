@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
 import { SPECIALISTS, generateTimeSlots, uid, buildRecordSummary } from "../utils/api";
@@ -34,9 +34,16 @@ const DOCTOR_IMAGES = {
 };
 
 export default function Booking() {
-  const { profile, addAppointment, setToast, history } = useAuth();
+  const { profile, addAppointment, setToast, history, token } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [dynamicDoctors, setDynamicDoctors] = useState([]);
+
+  useEffect(() => {
+    import("../utils/api").then(({ apiFetch }) => {
+      apiFetch("/doctors").then(setDynamicDoctors).catch(console.error);
+    });
+  }, []);
 
   // Pre-select specialty if coming from consultation
   const params = new URLSearchParams(location.search);
@@ -54,16 +61,38 @@ export default function Booking() {
 
   const timeSlots = useMemo(() => generateTimeSlots(), [selectedDoctor]);
 
+  const combinedDoctors = useMemo(() => {
+    return [...ALL_DOCTORS, ...dynamicDoctors];
+  }, [dynamicDoctors]);
+
   const filtered = useMemo(() => {
-    let docs = activeFilter === "all" ? ALL_DOCTORS : ALL_DOCTORS.filter((d) => d.specialty === activeFilter);
+    let docs = activeFilter === "all" ? combinedDoctors : combinedDoctors.filter((d) => d.specialty === activeFilter);
     const term = search.trim().toLowerCase();
     if (term) docs = docs.filter((d) => `${d.name} ${d.title} ${d.hospital} ${d.specialty}`.toLowerCase().includes(term));
     return docs;
-  }, [activeFilter, search]);
+  }, [activeFilter, search, combinedDoctors]);
 
-  function handleBook() {
+  async function handleBook() {
     if (!selectedDoctor || !selectedDate || !selectedTime) { setToast("Select a doctor, date, and time."); return; }
     setBookingLoading(true);
+    
+    if (selectedDoctor.db_id && token) {
+      try {
+        const { apiFetch } = await import("../utils/api");
+        await apiFetch("/appointments/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({
+            doctor_id: selectedDoctor.db_id,
+            date: selectedDate.date,
+            time: selectedTime,
+            notes: preRecord ? buildRecordSummary(preRecord) : "General Consultation"
+          })
+        });
+      } catch (err) {
+        console.error("Failed to sync appointment with DB", err);
+      }
+    }
     setTimeout(() => {
       const appt = {
         id: uid(),
@@ -151,8 +180,8 @@ export default function Booking() {
               {filtered.length ? filtered.map((doc) => (
                 <button key={doc.id} className={`bkp-doc-card ${selectedDoctor?.id === doc.id ? "selected" : ""}`} onClick={() => { setSelectedDoctor(doc); setSelectedDate(null); setSelectedTime(null); }}>
                   <div className="bkp-doc-img-wrap">
-                    <img src={DOCTOR_IMAGES[doc.id]} alt={doc.name} className="bkp-doc-img" onError={(e) => { e.target.style.display = "none"; }} />
-                    <div className="bkp-doc-img-fallback">{doc.avatar}</div>
+                    <img src={doc.db_id ? (doc.avatar_url || doc.avatar) : (DOCTOR_IMAGES[doc.id] || doc.avatar)} alt={doc.name} className="bkp-doc-img" onError={(e) => { e.target.style.display = "none"; }} />
+                    <div className="bkp-doc-img-fallback">{typeof doc.avatar === "string" && doc.avatar.length <= 3 ? doc.avatar : doc.name?.[0]}</div>
                     {doc.available && <span className="bkp-doc-online">●</span>}
                   </div>
                   <div className="bkp-doc-body">
@@ -188,7 +217,7 @@ export default function Booking() {
                   </button>
                   <div className="bkp-side-card">
                     <div className="bkp-side-doc">
-                      <img src={DOCTOR_IMAGES[selectedDoctor.id]} alt={selectedDoctor.name} className="bkp-side-img" onError={(e) => { e.target.style.display = "none"; }} />
+                      <img src={selectedDoctor.db_id ? (selectedDoctor.avatar_url || selectedDoctor.avatar) : (DOCTOR_IMAGES[selectedDoctor.id] || selectedDoctor.avatar)} alt={selectedDoctor.name} className="bkp-side-img" onError={(e) => { e.target.style.display = "none"; }} />
                       <div>
                         <strong>{selectedDoctor.name}</strong>
                         <span>{selectedDoctor.title}</span>

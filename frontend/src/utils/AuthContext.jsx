@@ -49,15 +49,17 @@ export function AuthProvider({ children }) {
   async function hydrate(activeToken = token) {
     setLoading(true);
     try {
-      const [profileData, historyData] = await Promise.all([
+      const [profileData, historyData, aptData] = await Promise.all([
         apiFetch("/patients/me", { headers: { Authorization: `Bearer ${activeToken}` } }),
         apiFetch("/history/?limit=50", { headers: { Authorization: `Bearer ${activeToken}` } }),
+        apiFetch("/appointments/me", { headers: { Authorization: `Bearer ${activeToken}` } }).catch(() => [])
       ]);
       const normalized = (historyData.consultations || []).map((item) => ({
         ...item, audio_player_url: getAudioUrl(item),
       }));
       setProfile(profileData);
       setHistory(normalized);
+      setAppointments(aptData);
     } catch (e) { setToast(e.message); } finally { setLoading(false); }
   }
 

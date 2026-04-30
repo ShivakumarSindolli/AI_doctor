@@ -1,0 +1,115 @@
+/* ═══════════════════ DOCTOR PORTAL ═══════════════════ */
+.dp-page { flex: 1; padding: 0; display: flex; flex-direction: column; }
+
+/* Header */
+.dp-header { background: linear-gradient(135deg, var(--navy) 0%, #312e81 100%); color: #fff; padding: 40px 40px 32px; display: flex; justify-content: space-between; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+.dp-header-content { display: flex; align-items: center; gap: 20px; }
+.dp-avatar { width: 80px; height: 80px; border-radius: 50%; overflow: hidden; background: linear-gradient(135deg, var(--indigo), var(--violet)); display: grid; place-items: center; font-size: 2rem; font-weight: 700; color: #fff; border: 3px solid rgba(255,255,255,0.3); flex-shrink: 0; }
+.dp-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dp-role-badge { display: inline-block; padding: 4px 12px; border-radius: var(--radius-pill); background: rgba(255,255,255,0.15); font-size: .78rem; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; margin-bottom: 8px; }
+.dp-header h1 { font-size: 1.8rem; margin: 0 0 4px; }
+.dp-email { opacity: .7; font-size: .9rem; margin: 0; }
+.dp-meta { opacity: .85; font-size: .9rem; margin: 4px 0 0; }
+.dp-stats { display: flex; gap: 32px; }
+.dp-stat { text-align: center; }
+.dp-stat strong { display: block; font-size: 2rem; font-weight: 700; }
+.dp-stat span { font-size: .82rem; opacity: .7; }
+
+/* Tabs */
+.dp-tabs { display: flex; gap: 4px; padding: 20px 40px 0; background: var(--bg-main); border-bottom: 1px solid var(--border); }
+.dp-tab { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px 12px 0 0; font-weight: 500; font-size: .9rem; color: var(--text-secondary); background: transparent; border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; transition: all .2s; cursor: pointer; }
+.dp-tab:hover { color: var(--indigo); background: rgba(79,70,229,0.05); }
+.dp-tab.active { color: var(--indigo); background: #fff; border-color: var(--border); font-weight: 600; }
+.dp-badge { background: var(--indigo); color: #fff; border-radius: 999px; font-size: .72rem; font-weight: 700; padding: 2px 8px; min-width: 20px; text-align: center; }
+
+/* Content */
+.dp-content { flex: 1; padding: 32px 40px; }
+
+/* Appointments */
+.dp-empty { text-align: center; padding: 80px 20px; }
+.dp-empty-icon { font-size: 3rem; margin-bottom: 16px; }
+.dp-empty h3 { font-size: 1.4rem; margin-bottom: 8px; }
+.dp-empty p { color: var(--text-secondary); max-width: 420px; margin: 0 auto; }
+.dp-apt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 20px; }
+.dp-apt-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; position: relative; transition: box-shadow .2s; }
+.dp-apt-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.dp-apt-card.today { border-color: var(--indigo); background: rgba(238,242,255,0.4); }
+.dp-apt-today-badge { position: absolute; top: 16px; right: 16px; background: var(--indigo); color: #fff; font-size: .72rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; }
+.dp-apt-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.dp-apt-patient { display: flex; align-items: center; gap: 12px; }
+.dp-apt-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--indigo), var(--violet)); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+.dp-apt-patient strong { display: block; font-size: .95rem; margin-bottom: 2px; }
+.dp-apt-patient span { font-size: .82rem; color: var(--text-secondary); }
+.dp-apt-status { padding: 4px 12px; border-radius: 999px; font-size: .78rem; font-weight: 600; }
+.dp-apt-status.scheduled { background: rgba(79,70,229,0.1); color: var(--indigo); }
+.dp-apt-status.confirmed { background: rgba(34,197,94,0.1); color: var(--emerald); }
+.dp-apt-status.cancelled { background: rgba(239,68,68,0.1); color: var(--red); }
+.dp-apt-details { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
+.dp-apt-detail { display: flex; align-items: center; gap: 8px; font-size: .87rem; color: var(--text-secondary); }
+.dp-apt-detail.notes { color: var(--text-primary); }
+
+/* Profile Edit */
+.dp-profile-edit { display: grid; grid-template-columns: 1fr 400px; gap: 32px; align-items: start; }
+.dp-profile-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl); padding: 32px; }
+.dp-profile-card h2 { font-size: 1.3rem; margin-bottom: 4px; }
+.dp-profile-card > p { color: var(--text-secondary); margin-bottom: 24px; }
+.dp-loading { padding: 40px; text-align: center; color: var(--text-secondary); }
+.dp-form { display: flex; flex-direction: column; gap: 16px; }
+.dp-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dp-form-group { display: flex; flex-direction: column; gap: 6px; }
+.dp-form-group label { font-size: .85rem; font-weight: 600; color: var(--text-secondary); }
+.dp-form-group input, .dp-form-group select, .dp-form-group textarea { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-main); font-size: .92rem; color: var(--text-primary); transition: border-color .2s; }
+.dp-form-group input:focus, .dp-form-group select:focus, .dp-form-group textarea:focus { outline: none; border-color: var(--indigo); box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+.dp-form-group textarea { resize: vertical; }
+.dp-preview-img { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.dp-preview-img img { width: 60px; height: 60px; border-radius: 12px; object-fit: cover; border: 1px solid var(--border); }
+.dp-preview-img span { font-size: .82rem; color: var(--text-secondary); }
+
+/* Live Preview Card */
+.dp-preview-card-wrap { position: sticky; top: 20px; }
+.dp-preview-card-wrap h3 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+.dp-preview-card-wrap > p { color: var(--text-secondary); font-size: .85rem; margin-bottom: 16px; }
+.dp-preview-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+.dp-preview-img-wrap { width: 100%; height: 200px; overflow: hidden; background: linear-gradient(135deg, var(--indigo), var(--violet)); }
+.dp-preview-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: center 15%; }
+.dp-preview-img-fallback { width: 100%; height: 100%; display: grid; place-items: center; font-size: 3rem; font-weight: 700; color: #fff; }
+.dp-preview-body { padding: 20px 20px 0; }
+.dp-preview-name { font-size: 1.1rem; font-weight: 700; display: block; margin-bottom: 4px; }
+.dp-preview-title { font-size: .9rem; color: var(--text-secondary); display: block; margin-bottom: 12px; }
+.dp-preview-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+.dp-preview-details { display: flex; flex-direction: column; gap: 6px; padding-bottom: 16px; }
+.dp-preview-details span { font-size: .85rem; color: var(--text-secondary); }
+.dp-preview-price { padding: 16px 20px; background: rgba(0,0,0,0.02); border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.dp-preview-price strong { font-size: 1.25rem; color: var(--indigo); }
+.dp-preview-price span { font-size: .8rem; color: var(--text-secondary); }
+
+@media (max-width: 900px) {
+  .dp-header { padding: 24px 16px; flex-direction: column; align-items: start; }
+  .dp-header-content { gap: 14px; }
+  .dp-header h1 { font-size: 1.4rem; }
+  .dp-content { padding: 20px 16px; }
+  .dp-profile-edit { grid-template-columns: 1fr; }
+  .dp-preview-card-wrap { position: static; }
+  .dp-tabs { padding: 12px 16px 0; overflow-x: auto; }
+  .dp-tab { white-space: nowrap; padding: 10px 16px; font-size: .85rem; }
+  .dp-stats { gap: 20px; }
+  .dp-apt-grid { grid-template-columns: 1fr; }
+  .dp-form-row { grid-template-columns: 1fr; }
+  .dp-profile-card { padding: 20px; }
+}
+
+@media (max-width: 480px) {
+  .dp-header { padding: 16px 12px; }
+  .dp-avatar { width: 56px; height: 56px; font-size: 1.4rem; }
+  .dp-header h1 { font-size: 1.2rem; }
+  .dp-stats { gap: 12px; }
+  .dp-stat strong { font-size: 1.4rem; }
+  .dp-stat span { font-size: .75rem; }
+  .dp-content { padding: 16px 12px; }
+  .dp-tabs { padding: 10px 12px 0; gap: 2px; }
+  .dp-tab { padding: 8px 12px; font-size: .8rem; }
+  .dp-apt-card { padding: 14px; }
+  .dp-apt-top { flex-direction: column; align-items: start; gap: 8px; }
+  .dp-profile-card { padding: 16px; }
+  .dp-profile-card h2 { font-size: 1.1rem; }
+}

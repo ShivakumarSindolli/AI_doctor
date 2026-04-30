@@ -10,6 +10,8 @@ from backend.routers.auth         import router as auth_router
 from backend.routers.patients     import router as patients_router
 from backend.routers.consultation import router as consult_router
 from backend.routers.history      import router as history_router
+from backend.routers.doctors      import router as doctors_router
+from backend.routers.appointments import router as appointments_router
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,6 +43,8 @@ app.include_router(auth_router)
 app.include_router(patients_router)
 app.include_router(consult_router)
 app.include_router(history_router)
+app.include_router(doctors_router)
+app.include_router(appointments_router)
 
 
 @app.on_event("startup")

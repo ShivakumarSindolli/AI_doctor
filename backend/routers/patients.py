@@ -27,6 +27,7 @@ def get_profile(current_user: User = Depends(get_current_user)):
         "blood_type":  current_user.blood_type,
         "allergies":   current_user.allergies,
         "medications": current_user.medications,
+        "role":        current_user.role,
         "member_since":current_user.created_at.isoformat(),
     }
 

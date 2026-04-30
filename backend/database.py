@@ -26,7 +26,11 @@ class User(Base):
     allergies     = Column(Text, nullable=True)
     medications   = Column(Text, nullable=True)
     created_at    = Column(DateTime, default=datetime.utcnow)
+    role          = Column(String, default="patient")
     consultations = relationship("Consultation", back_populates="user")
+    doctor_profile= relationship("DoctorProfile", back_populates="user", uselist=False)
+    appointments_as_patient = relationship("Appointment", foreign_keys="Appointment.patient_id", back_populates="patient")
+    appointments_as_doctor  = relationship("Appointment", foreign_keys="Appointment.doctor_id", back_populates="doctor")
 
 
 class Consultation(Base):
@@ -44,6 +48,34 @@ class Consultation(Base):
     flagged         = Column(Boolean, default=False)   # safety flag
     created_at      = Column(DateTime, default=datetime.utcnow)
     user            = relationship("User", back_populates="consultations")
+
+
+class DoctorProfile(Base):
+    __tablename__ = "doctor_profiles"
+    id          = Column(Integer, primary_key=True, index=True)
+    user_id     = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    specialty   = Column(String, default="General")
+    experience  = Column(String, default="0 yrs")
+    hospital    = Column(String, default="MediAI Clinic")
+    fee         = Column(String, default="₹0")
+    avatar_url  = Column(String, nullable=True)
+    bio         = Column(Text, nullable=True)
+    user        = relationship("User", back_populates="doctor_profile")
+
+
+class Appointment(Base):
+    __tablename__ = "appointments"
+    id          = Column(Integer, primary_key=True, index=True)
+    patient_id  = Column(Integer, ForeignKey("users.id"), nullable=False)
+    doctor_id   = Column(Integer, ForeignKey("users.id"), nullable=False)
+    date        = Column(String, nullable=False)
+    time        = Column(String, nullable=False)
+    status      = Column(String, default="scheduled")
+    notes       = Column(Text, nullable=True)
+    created_at  = Column(DateTime, default=datetime.utcnow)
+    
+    patient     = relationship("User", foreign_keys=[patient_id], back_populates="appointments_as_patient")
+    doctor      = relationship("User", foreign_keys=[doctor_id], back_populates="appointments_as_doctor")
 
 
 class ConversationTurn(Base):

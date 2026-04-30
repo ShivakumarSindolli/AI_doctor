@@ -9,6 +9,7 @@ import Appointments from "./pages/Appointments";
 import Report from "./pages/Report";
 import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
+import DoctorPortal from "./pages/DoctorPortal";
 
 function ProtectedRoute({ children }) {
   const { token } = useAuth();
@@ -34,6 +35,7 @@ function App() {
         <Route path="/report/:id" element={<ProtectedRoute><Report /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="/doctor/portal" element={<ProtectedRoute><DoctorPortal /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>
