@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
 import { LANGUAGES } from "../utils/api";
+import { Globe, Bell, User, Calendar, Settings, ClipboardList, HelpCircle, LogOut } from "lucide-react";
 
 export default function Navbar() {
   const { profile, logout, setToast, language, setLanguage } = useAuth();
@@ -54,13 +55,13 @@ export default function Navbar() {
         {/* Language Selector */}
         <div className="nav-lang-wrap" ref={langRef}>
           <button className="nav-lang-btn" onClick={() => setLangOpen(!langOpen)} title="Select Language">
-            <span className="nav-lang-globe">🌐</span>
+            <span className="nav-lang-globe" style={{display: "flex", alignItems: "center"}}><Globe size={16} /></span>
             <span className="nav-lang-label">{currentLang.native}</span>
             <span className="nav-chevron">▾</span>
           </button>
           {langOpen && (
             <div className="nav-lang-dropdown">
-              <div className="nav-lang-header">🌐 Select Language</div>
+              <div className="nav-lang-header" style={{display: "flex", alignItems: "center", gap: "6px"}}><Globe size={16} /> Select Language</div>
               {LANGUAGES.map((lang) => (
                 <button
                   key={lang.code}
@@ -77,8 +78,8 @@ export default function Navbar() {
           )}
         </div>
 
-        <button className="nav-bell" onClick={() => setToast("No new alerts")}>
-          🔔
+        <button className="nav-bell" onClick={() => setToast("No new alerts")} style={{display: "flex", alignItems: "center"}}>
+          <Bell size={18} />
           <span className="nav-bell-badge">2</span>
         </button>
         <div className="nav-user-wrap" ref={dropRef}>
@@ -90,23 +91,23 @@ export default function Navbar() {
           {dropdownOpen && (
             <div className="nav-dropdown">
               <button onClick={() => { navigate("/profile"); setDropdownOpen(false); }}>
-                <span className="nav-drop-icon">👤</span> My Profile
+                <span className="nav-drop-icon"><User size={16} /></span> My Profile
               </button>
               <button onClick={() => { navigate("/appointments"); setDropdownOpen(false); }}>
-                <span className="nav-drop-icon">📅</span> My Appointments
+                <span className="nav-drop-icon"><Calendar size={16} /></span> My Appointments
               </button>
               <button onClick={() => { navigate("/settings"); setDropdownOpen(false); }}>
-                <span className="nav-drop-icon">⚙</span> Account Settings
+                <span className="nav-drop-icon"><Settings size={16} /></span> Account Settings
               </button>
               <button onClick={() => { navigate("/history"); setDropdownOpen(false); }}>
-                <span className="nav-drop-icon">📋</span> Consultation History
+                <span className="nav-drop-icon"><ClipboardList size={16} /></span> Consultation History
               </button>
               <button onClick={() => { setToast("Help docs coming soon"); setDropdownOpen(false); }}>
-                <span className="nav-drop-icon">❓</span> Help & Support
+                <span className="nav-drop-icon"><HelpCircle size={16} /></span> Help & Support
               </button>
               <div className="nav-dropdown-divider" />
               <button className="nav-logout-btn" onClick={() => { logout(); navigate("/"); setDropdownOpen(false); }}>
-                <span className="nav-drop-icon">↗</span> Sign Out
+                <span className="nav-drop-icon"><LogOut size={16} /></span> Sign Out
               </button>
             </div>
           )}

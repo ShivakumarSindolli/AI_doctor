@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
 import { GENDERS, BLOOD_TYPES } from "../utils/api";
-import doctorHero from "../doctor-hero.svg";
+import doctorHero from "../doctor.png";
 
 export default function Landing() {
   const { login, register: doRegister, setToast } = useAuth();

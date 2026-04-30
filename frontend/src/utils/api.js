@@ -109,52 +109,52 @@ export function likelihoodToPercent(likelihood) {
 // Keys MUST match the triage_agent.py SPECIALTIES list exactly
 export const SPECIALISTS = {
   dermatology: [
-    { id: "dr-1", name: "Dr. Priya Sharma", title: "Senior Dermatologist", rating: 4.9, reviews: 342, exp: "15 yrs", hospital: "Apollo Skin Clinic", fee: "$120", avatar: "PS", available: true },
-    { id: "dr-2", name: "Dr. Rajesh Kumar", title: "Consultant Dermatologist", rating: 4.7, reviews: 218, exp: "12 yrs", hospital: "Fortis Derma Center", fee: "$95", avatar: "RK", available: true },
+    { id: "dr-1", name: "Dr. Priya Sharma", title: "Senior Dermatologist", rating: 4.9, reviews: 342, exp: "15 yrs", hospital: "Apollo Skin Clinic", fee: "₹120", avatar: "PS", available: true },
+    { id: "dr-2", name: "Dr. Rajesh Kumar", title: "Consultant Dermatologist", rating: 4.7, reviews: 218, exp: "12 yrs", hospital: "Fortis Derma Center", fee: "₹95", avatar: "RK", available: true },
   ],
   cardiology: [
-    { id: "dr-3", name: "Dr. Anand Mehta", title: "Interventional Cardiologist", rating: 4.9, reviews: 512, exp: "20 yrs", hospital: "Max Heart Institute", fee: "$200", avatar: "AM", available: true },
-    { id: "dr-4", name: "Dr. Sneha Patel", title: "Cardiac Electrophysiologist", rating: 4.8, reviews: 289, exp: "14 yrs", hospital: "Narayana Health", fee: "$180", avatar: "SP", available: true },
+    { id: "dr-3", name: "Dr. Anand Mehta", title: "Interventional Cardiologist", rating: 4.9, reviews: 512, exp: "20 yrs", hospital: "Max Heart Institute", fee: "₹200", avatar: "AM", available: true },
+    { id: "dr-4", name: "Dr. Sneha Patel", title: "Cardiac Electrophysiologist", rating: 4.8, reviews: 289, exp: "14 yrs", hospital: "Narayana Health", fee: "₹180", avatar: "SP", available: true },
   ],
   neurology: [
-    { id: "dr-5", name: "Dr. Vikram Singh", title: "Senior Neurologist", rating: 4.8, reviews: 376, exp: "18 yrs", hospital: "AIIMS Neuro Wing", fee: "$175", avatar: "VS", available: true },
+    { id: "dr-5", name: "Dr. Vikram Singh", title: "Senior Neurologist", rating: 4.8, reviews: 376, exp: "18 yrs", hospital: "AIIMS Neuro Wing", fee: "₹175", avatar: "VS", available: true },
   ],
   orthopedics: [
-    { id: "dr-9", name: "Dr. Arjun Reddy", title: "Orthopedic Surgeon", rating: 4.9, reviews: 445, exp: "16 yrs", hospital: "Joint & Spine Hospital", fee: "$160", avatar: "AR", available: true },
+    { id: "dr-9", name: "Dr. Arjun Reddy", title: "Orthopedic Surgeon", rating: 4.9, reviews: 445, exp: "16 yrs", hospital: "Joint & Spine Hospital", fee: "₹160", avatar: "AR", available: true },
   ],
   gastroenterology: [
-    { id: "dr-12", name: "Dr. Ramesh Iyer", title: "Senior Gastroenterologist", rating: 4.8, reviews: 310, exp: "17 yrs", hospital: "Apollo GI Center", fee: "$155", avatar: "RI", available: true },
-    { id: "dr-13", name: "Dr. Fatima Sheikh", title: "Consultant Gastroenterologist", rating: 4.7, reviews: 226, exp: "11 yrs", hospital: "Fortis Digestive Care", fee: "$130", avatar: "FS", available: true },
+    { id: "dr-12", name: "Dr. Ramesh Iyer", title: "Senior Gastroenterologist", rating: 4.8, reviews: 310, exp: "17 yrs", hospital: "Apollo GI Center", fee: "₹155", avatar: "RI", available: true },
+    { id: "dr-13", name: "Dr. Fatima Sheikh", title: "Consultant Gastroenterologist", rating: 4.7, reviews: 226, exp: "11 yrs", hospital: "Fortis Digestive Care", fee: "₹130", avatar: "FS", available: true },
   ],
   pulmonology: [
-    { id: "dr-14", name: "Dr. Anil Kapoor", title: "Senior Pulmonologist", rating: 4.8, reviews: 287, exp: "19 yrs", hospital: "Lung Care Institute", fee: "$165", avatar: "AK", available: true },
-    { id: "dr-15", name: "Dr. Meera Joshi", title: "Consultant Pulmonologist", rating: 4.6, reviews: 192, exp: "10 yrs", hospital: "Max Respiratory Center", fee: "$135", avatar: "MJ", available: true },
+    { id: "dr-14", name: "Dr. Anil Kapoor", title: "Senior Pulmonologist", rating: 4.8, reviews: 287, exp: "19 yrs", hospital: "Lung Care Institute", fee: "₹165", avatar: "AK", available: true },
+    { id: "dr-15", name: "Dr. Meera Joshi", title: "Consultant Pulmonologist", rating: 4.6, reviews: 192, exp: "10 yrs", hospital: "Max Respiratory Center", fee: "₹135", avatar: "MJ", available: true },
   ],
   psychiatry: [
-    { id: "dr-16", name: "Dr. Sanjay Gupta", title: "Senior Psychiatrist", rating: 4.9, reviews: 398, exp: "20 yrs", hospital: "MindCare Clinic", fee: "$175", avatar: "SG", available: true },
-    { id: "dr-17", name: "Dr. Anjali Das", title: "Clinical Psychiatrist", rating: 4.7, reviews: 245, exp: "12 yrs", hospital: "Fortis Mental Wellness", fee: "$145", avatar: "AD", available: true },
+    { id: "dr-16", name: "Dr. Sanjay Gupta", title: "Senior Psychiatrist", rating: 4.9, reviews: 398, exp: "20 yrs", hospital: "MindCare Clinic", fee: "₹175", avatar: "SG", available: true },
+    { id: "dr-17", name: "Dr. Anjali Das", title: "Clinical Psychiatrist", rating: 4.7, reviews: 245, exp: "12 yrs", hospital: "Fortis Mental Wellness", fee: "₹145", avatar: "AD", available: true },
   ],
   ophthalmology: [
-    { id: "dr-10", name: "Dr. Nisha Gupta", title: "Senior Ophthalmologist", rating: 4.7, reviews: 312, exp: "14 yrs", hospital: "Clear Vision Eye Clinic", fee: "$110", avatar: "NG", available: true },
+    { id: "dr-10", name: "Dr. Nisha Gupta", title: "Senior Ophthalmologist", rating: 4.7, reviews: 312, exp: "14 yrs", hospital: "Clear Vision Eye Clinic", fee: "₹110", avatar: "NG", available: true },
   ],
   ent: [
-    { id: "dr-18", name: "Dr. Karthik Nair", title: "Senior ENT Specialist", rating: 4.8, reviews: 329, exp: "15 yrs", hospital: "ENT & Allergy Center", fee: "$130", avatar: "KN", available: true },
-    { id: "dr-19", name: "Dr. Pooja Malhotra", title: "Consultant ENT Surgeon", rating: 4.6, reviews: 198, exp: "11 yrs", hospital: "Apollo ENT Wing", fee: "$115", avatar: "PM", available: true },
+    { id: "dr-18", name: "Dr. Karthik Nair", title: "Senior ENT Specialist", rating: 4.8, reviews: 329, exp: "15 yrs", hospital: "ENT & Allergy Center", fee: "₹130", avatar: "KN", available: true },
+    { id: "dr-19", name: "Dr. Pooja Malhotra", title: "Consultant ENT Surgeon", rating: 4.6, reviews: 198, exp: "11 yrs", hospital: "Apollo ENT Wing", fee: "₹115", avatar: "PM", available: true },
   ],
   endocrinology: [
-    { id: "dr-8", name: "Dr. Kavita Rao", title: "Endocrinologist", rating: 4.8, reviews: 201, exp: "13 yrs", hospital: "Thyroid & Diabetes Center", fee: "$150", avatar: "KR", available: true },
-    { id: "dr-20", name: "Dr. Nikhil Sharma", title: "Senior Endocrinologist", rating: 4.7, reviews: 267, exp: "15 yrs", hospital: "Max Endocrine Clinic", fee: "$160", avatar: "NS", available: true },
+    { id: "dr-8", name: "Dr. Kavita Rao", title: "Endocrinologist", rating: 4.8, reviews: 201, exp: "13 yrs", hospital: "Thyroid & Diabetes Center", fee: "₹150", avatar: "KR", available: true },
+    { id: "dr-20", name: "Dr. Nikhil Sharma", title: "Senior Endocrinologist", rating: 4.7, reviews: 267, exp: "15 yrs", hospital: "Max Endocrine Clinic", fee: "₹160", avatar: "NS", available: true },
   ],
   urology: [
-    { id: "dr-21", name: "Dr. Raghav Menon", title: "Senior Urologist", rating: 4.8, reviews: 356, exp: "16 yrs", hospital: "Kidney & Urology Hospital", fee: "$155", avatar: "RM", available: true },
-    { id: "dr-22", name: "Dr. Deepa Krishnan", title: "Consultant Urologist", rating: 4.7, reviews: 214, exp: "12 yrs", hospital: "Apollo Urology Center", fee: "$140", avatar: "DK", available: true },
+    { id: "dr-21", name: "Dr. Raghav Menon", title: "Senior Urologist", rating: 4.8, reviews: 356, exp: "16 yrs", hospital: "Kidney & Urology Hospital", fee: "₹155", avatar: "RM", available: true },
+    { id: "dr-22", name: "Dr. Deepa Krishnan", title: "Consultant Urologist", rating: 4.7, reviews: 214, exp: "12 yrs", hospital: "Apollo Urology Center", fee: "₹140", avatar: "DK", available: true },
   ],
   general: [
-    { id: "dr-6", name: "Dr. Sarah Chen", title: "General Physician", rating: 4.6, reviews: 198, exp: "10 yrs", hospital: "MediAI Primary Care", fee: "$75", avatar: "SC", available: true },
-    { id: "dr-7", name: "Dr. Mohammad Ali", title: "Family Medicine", rating: 4.7, reviews: 264, exp: "12 yrs", hospital: "City Health Center", fee: "$80", avatar: "MA", available: true },
+    { id: "dr-6", name: "Dr. Sarah Chen", title: "General Physician", rating: 4.6, reviews: 198, exp: "10 yrs", hospital: "MediAI Primary Care", fee: "₹75", avatar: "SC", available: true },
+    { id: "dr-7", name: "Dr. Mohammad Ali", title: "Family Medicine", rating: 4.7, reviews: 264, exp: "12 yrs", hospital: "City Health Center", fee: "₹80", avatar: "MA", available: true },
   ],
   emergency: [
-    { id: "dr-11", name: "Dr. Amit Verma", title: "Emergency Medicine", rating: 4.9, reviews: 523, exp: "17 yrs", hospital: "City Trauma Center", fee: "$250", avatar: "AV", available: true },
+    { id: "dr-11", name: "Dr. Amit Verma", title: "Emergency Medicine", rating: 4.9, reviews: 523, exp: "17 yrs", hospital: "City Trauma Center", fee: "₹250", avatar: "AV", available: true },
   ],
 };
 

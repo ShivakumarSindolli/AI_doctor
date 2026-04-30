@@ -96,7 +96,7 @@ export default function Settings() {
               <div className="settings-card">
                 <h3>Billing & Plan</h3>
                 <div className="sf-plan-card">
-                  <div><strong>Professional Plan</strong><span>$49/month</span></div>
+                  <div><strong>Professional Plan</strong><span>₹49/month</span></div>
                   <div className="sf-usage"><span>Usage this month: 24 / 500 consultations</span><div className="sf-usage-bar"><div style={{ width: "4.8%" }} /></div></div>
                   <button className="secondary-button" onClick={() => setToast("Plan management coming soon")}>Upgrade Plan</button>
                 </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
 import { apiFetch, getAudioUrl, uid, formatTime, buildRecordSummary, getSpecialistsForType, likelihoodToPercent, getLanguageLabel } from "../utils/api";
 import Navbar from "../components/Navbar";
+import { Brain } from "lucide-react";
 
 const SUGGESTIONS = [
   { icon: "🦠", title: "Skin rash or lesion", desc: "Fungal/bacterial/allergic" },
@@ -199,9 +200,18 @@ export default function NewConsultation() {
             ) : null}
 
             {consulting && (
-              <div className="consult-loading-bubble">
-                <div className="loading-spinner" />
-                <div><strong>AI is analysing…</strong><p>{loadingStep}</p></div>
+              <div className="ai-loading-container">
+                <div className="ai-brain-pulse">
+                  <div className="ai-pulse-ring" />
+                  <div className="ai-pulse-ring" />
+                  <div className="ai-pulse-ring" />
+                  <div className="ai-scan-line" />
+                  <Brain size={48} className="ai-brain-icon" />
+                </div>
+                <div className="ai-loading-text">
+                  <h3>AI is analyzing patient data</h3>
+                  <p className="ai-loading-step">{loadingStep || "Processing..."}</p>
+                </div>
               </div>
             )}
 
