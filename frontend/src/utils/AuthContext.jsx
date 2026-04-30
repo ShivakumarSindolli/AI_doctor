@@ -7,6 +7,9 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => localStorage.getItem("ai_doctor_token") || "");
   const [profile, setProfile] = useState(null);
   const [history, setHistory] = useState([]);
+  const [appointments, setAppointments] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("mediai_appointments") || "[]"); } catch { return []; }
+  });
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState("");
 
@@ -16,14 +19,24 @@ export function AuthProvider({ children }) {
     return () => clearTimeout(t);
   }, [toast]);
 
+  useEffect(() => { if (token) hydrate(token); }, []);
+
   useEffect(() => {
-    if (token) hydrate(token);
-  }, []);
+    localStorage.setItem("mediai_appointments", JSON.stringify(appointments));
+  }, [appointments]);
 
   function persistToken(t) {
     setToken(t);
     if (t) localStorage.setItem("ai_doctor_token", t);
     else localStorage.removeItem("ai_doctor_token");
+  }
+
+  function addAppointment(appt) {
+    setAppointments((prev) => [appt, ...prev]);
+  }
+
+  function cancelAppointment(id) {
+    setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status: "cancelled" } : a));
   }
 
   async function hydrate(activeToken = token) {
@@ -34,32 +47,21 @@ export function AuthProvider({ children }) {
         apiFetch("/history/?limit=50", { headers: { Authorization: `Bearer ${activeToken}` } }),
       ]);
       const normalized = (historyData.consultations || []).map((item) => ({
-        ...item,
-        audio_player_url: getAudioUrl(item),
+        ...item, audio_player_url: getAudioUrl(item),
       }));
       setProfile(profileData);
       setHistory(normalized);
-    } catch (e) {
-      setToast(e.message);
-    } finally {
-      setLoading(false);
-    }
+    } catch (e) { setToast(e.message); } finally { setLoading(false); }
   }
 
-  function logout() {
-    persistToken("");
-    setProfile(null);
-    setHistory([]);
-  }
+  function logout() { persistToken(""); setProfile(null); setHistory([]); }
 
   async function login(email, password) {
     const body = new URLSearchParams();
     body.append("username", email);
     body.append("password", password);
     const data = await apiFetch("/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body,
+      method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body,
     });
     persistToken(data.access_token);
     await hydrate(data.access_token);
@@ -67,16 +69,9 @@ export function AuthProvider({ children }) {
   }
 
   async function register(form) {
-    const payload = {
-      ...form,
-      age: form.age ? Number(form.age) : null,
-      allergies: form.allergies || null,
-      medications: form.medications || null,
-    };
+    const payload = { ...form, age: form.age ? Number(form.age) : null, allergies: form.allergies || null, medications: form.medications || null };
     const data = await apiFetch("/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
     });
     persistToken(data.access_token);
     await hydrate(data.access_token);
@@ -85,13 +80,11 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, profile, setProfile, history, setHistory, loading, toast, setToast, login, register, logout, hydrate, persistToken }}
+      value={{ token, profile, setProfile, history, setHistory, appointments, addAppointment, cancelAppointment, loading, toast, setToast, login, register, logout, hydrate, persistToken }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
+export function useAuth() { return useContext(AuthContext); }

@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
-import { apiFetch, getAudioUrl, uid, formatTime, buildRecordSummary, API_BASE } from "../utils/api";
+import { apiFetch, getAudioUrl, uid, formatTime, buildRecordSummary, getSpecialistsForType } from "../utils/api";
 import Navbar from "../components/Navbar";
 
 const SUGGESTIONS = [
@@ -33,6 +33,11 @@ export default function NewConsultation() {
   const imageInputRef = useRef(null);
   const feedEndRef = useRef(null);
 
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []);
+
   useEffect(() => {
     if (results && feedEndRef.current) feedEndRef.current.scrollIntoView({ behavior: "smooth" });
   }, [results]);
@@ -42,6 +47,13 @@ export default function NewConsultation() {
     setImageFile(null); setImagePreview("");
     setAudioFile(null); setAudioUrl(""); setRecordTime(0);
   }
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+  }, []);
 
   async function startRecording() {
     try {
@@ -54,19 +66,33 @@ export default function NewConsultation() {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
         const ext = recorder.mimeType.includes("ogg") ? "ogg" : "webm";
         const file = new File([blob], `symptom-recording.${ext}`, { type: blob.type });
-        setAudioFile(file); setAudioUrl(URL.createObjectURL(blob));
-        stream.getTracks().forEach((t) => t.stop()); streamRef.current = null;
+        setAudioFile(file);
+        setAudioUrl(URL.createObjectURL(blob));
+        stream.getTracks().forEach((t) => t.stop());
+        streamRef.current = null;
       };
-      recorder.start(); mediaRecRef.current = recorder; streamRef.current = stream;
-      setIsRecording(true); setRecordTime(0);
+      recorder.start();
+      mediaRecRef.current = recorder;
+      streamRef.current = stream;
+      setIsRecording(true);
+      setRecordTime(0);
+      // Clear any existing timer first, then start new one
+      stopTimer();
       timerRef.current = setInterval(() => setRecordTime((t) => t + 1), 1000);
       setToast("Recording started. Describe symptoms clearly.");
-    } catch { setToast("Microphone access was denied."); }
+    } catch {
+      setToast("Microphone access was denied.");
+    }
   }
 
   function stopRecording() {
-    mediaRecRef.current?.stop(); setIsRecording(false);
-    clearInterval(timerRef.current);
+    // Stop timer FIRST
+    stopTimer();
+    setIsRecording(false);
+    // Then stop recorder
+    if (mediaRecRef.current && mediaRecRef.current.state !== "inactive") {
+      mediaRecRef.current.stop();
+    }
   }
 
   function handleImageUpload(e) {
@@ -104,6 +130,7 @@ export default function NewConsultation() {
   const differentials = results?.diagnosis?.differential_diagnosis || [];
   const visionFindings = results?.vision_findings;
   const treatment = results?.diagnosis?.treatment_plan || results?.doctor_response || "";
+  const specialists = results ? getSpecialistsForType(results.specialist) : [];
 
   return (
     <div className="app-page">
@@ -112,7 +139,7 @@ export default function NewConsultation() {
         {/* Sidebar */}
         <aside className={`consult-sidebar ${sidebarOpen ? "open" : "collapsed"}`}>
           <div className="cs-brand">
-            <button className="nav-brand" onClick={() => navigate("/dashboard")}>
+            <button className="nav-brand" onClick={() => navigate("/consult/new")}>
               <span className="nav-brand-icon">✦</span>
               <span className="nav-brand-text">MediAI</span>
             </button>
@@ -143,20 +170,19 @@ export default function NewConsultation() {
 
         {/* Main Area */}
         <div className="consult-main">
-          {/* Header Bar */}
           <div className="consult-header-bar">
             <div className="consult-header-left">
               <h2>AI Disease Analysis</h2>
               <span className="consult-online-badge">● Online</span>
             </div>
-            <button className="ghost-button" onClick={() => navigate("/dashboard")}>← Back</button>
+            <button className="ghost-button" onClick={() => navigate("/history")}>← Back</button>
           </div>
 
           {/* Results Feed */}
           <div className="consult-feed">
             {!results && !consulting ? (
               <div className="consult-empty">
-                <div className="consult-empty-icon">✦</div>
+                <div className="consult-empty-orb"><div className="orb-inner" /><div className="orb-ring" /><div className="orb-ring r2" /></div>
                 <h3>How can I help you today?</h3>
                 <p>Upload a medical image and/or record your symptoms to begin AI analysis.</p>
                 <div className="consult-suggestions">
@@ -173,8 +199,8 @@ export default function NewConsultation() {
 
             {consulting && (
               <div className="consult-loading-bubble">
-                <div className="loading-dots"><span /><span /><span /></div>
-                <p>{loadingStep}</p>
+                <div className="loading-spinner" />
+                <div><strong>AI is analysing…</strong><p>{loadingStep}</p></div>
               </div>
             )}
 
@@ -185,21 +211,21 @@ export default function NewConsultation() {
                   <div className="bubble-content-user">
                     {imagePreview && <img src={imagePreview} alt="Upload" className="bubble-thumb" />}
                     <div>
-                      {imageFile && <p className="bubble-filename">{imageFile.name} · {(imageFile.size / 1024).toFixed(1)} KB</p>}
+                      {imageFile && <p className="bubble-filename">📎 {imageFile.name} · {(imageFile.size / 1024).toFixed(1)} KB</p>}
                       {results.patient_text && <p className="bubble-voice-snippet"><em>🎙 "{results.patient_text.slice(0, 80)}…"</em></p>}
                     </div>
                   </div>
                   <span className="bubble-time">{formatTime(new Date())}</span>
                 </div>
 
-                {/* AI Transcript Card */}
+                {/* AI Transcript */}
                 <div className="bubble bubble-ai transcript-card">
                   <div className="transcript-label">🎙 VOICE TRANSCRIPT</div>
                   <p className="transcript-text">"{results.patient_text}"</p>
                   <span className="transcript-conf">Whisper STT · {confidence}% confidence</span>
                 </div>
 
-                {/* AI Image Analysis */}
+                {/* Vision Findings */}
                 {visionFindings && (
                   <div className="bubble bubble-ai vision-card">
                     <div className="vision-label">🔍 VISUAL FINDINGS <span>Llama 4 Scout Vision</span></div>
@@ -211,7 +237,7 @@ export default function NewConsultation() {
                   </div>
                 )}
 
-                {/* AI Diagnosis Card */}
+                {/* Diagnosis Card */}
                 <div className="bubble bubble-ai diagnosis-bubble">
                   <div className="diag-header">
                     {imagePreview && <img src={imagePreview} alt="thumb" className="diag-thumb" />}
@@ -226,17 +252,13 @@ export default function NewConsultation() {
                       </div>
                     </div>
                   </div>
-
                   {visionFindings && (
-                    <div className="diag-section">
-                      <h4>🔍 Visual Findings</h4>
+                    <div className="diag-section"><h4>🔍 Visual Findings</h4>
                       <ul>{visionFindings.findings && <li>{visionFindings.findings}</li>}{(visionFindings.abnormalities || []).map((a, i) => <li key={i}>{a}</li>)}</ul>
                     </div>
                   )}
-
                   {differentials.length > 0 && (
-                    <div className="diag-section">
-                      <h4>📊 Differential Diagnoses</h4>
+                    <div className="diag-section"><h4>📊 Differential Diagnoses</h4>
                       {differentials.map((d, i) => (
                         <div key={i} className="diff-item">
                           <span>{d.condition}</span>
@@ -246,30 +268,49 @@ export default function NewConsultation() {
                       ))}
                     </div>
                   )}
-
-                  <div className="diag-section">
-                    <h4>💊 Treatment Plan</h4>
-                    <p>{treatment}</p>
-                  </div>
-
+                  <div className="diag-section"><h4>💊 Treatment Plan</h4><p>{treatment}</p></div>
                   <div className="diag-warning">⚠ AI decision support only — confirm with a clinician before prescribing.</div>
                 </div>
 
-                {/* Voice Player Bubble */}
+                {/* Voice Player */}
                 {results.audio_player_url && (
                   <div className="bubble bubble-ai voice-player-bubble">
                     <div className="voice-player-header">
                       <span className="voice-player-icon">🔊</span>
-                      <div>
-                        <strong>Voice Response</strong>
-                        <span>ElevenLabs TTS · Clinical Female</span>
-                      </div>
+                      <div><strong>Voice Response</strong><span>ElevenLabs TTS · Clinical Female</span></div>
                     </div>
                     <audio controls src={results.audio_player_url} className="voice-player-audio" autoPlay />
                   </div>
                 )}
 
-                {/* Generate Report Button */}
+                {/* ★ SPECIALIST SUGGESTION — redirects to /booking */}
+                <div className="bubble bubble-ai specialist-suggest-card">
+                  <div className="ssc-header">
+                    <div className="ssc-icon-wrap"><span>🏥</span></div>
+                    <div>
+                      <span className="ssc-label">AI SPECIALIST RECOMMENDATION</span>
+                      <h3>Recommended: <span className="ssc-specialty">{(results.specialist || "General").charAt(0).toUpperCase() + (results.specialist || "general").slice(1)}</span> Specialist</h3>
+                    </div>
+                  </div>
+                  <p className="ssc-reason">
+                    Based on the diagnosis of <strong>{differentials[0]?.condition || buildRecordSummary(results)}</strong> with {confidence}% confidence,
+                    MediAI recommends consulting a <strong>{results.specialist || "general"}</strong> specialist for further evaluation.
+                  </p>
+                  <div className="ssc-doctors-preview">
+                    {specialists.slice(0, 2).map((doc) => (
+                      <div key={doc.id} className="ssc-doc-mini">
+                        <div className="ssc-doc-avatar">{doc.avatar}</div>
+                        <div><strong>{doc.name}</strong><span>{doc.title} · ⭐ {doc.rating}</span></div>
+                      </div>
+                    ))}
+                  </div>
+                  <button className="ssc-book-btn" onClick={() => navigate(`/booking?specialty=${encodeURIComponent(results.specialist || "general")}&session=${results.session_id}`)}>
+                    📅 Book Appointment with Specialist
+                    <span>Browse doctors, pick a date & time — AI handles the rest</span>
+                  </button>
+                </div>
+
+                {/* Generate Report */}
                 <button className="generate-report-btn" onClick={() => navigate(`/report/${results.session_id}`)}>
                   📄 Generate Full Report
                   <span>Creates a structured PDF report for this consultation</span>
@@ -282,7 +323,6 @@ export default function NewConsultation() {
           {/* Bottom Input Bar */}
           <div className="consult-bottom-bar">
             <div className="input-zones">
-              {/* Zone 1: Image Upload */}
               <div className={`input-zone zone-upload ${imageFile ? "has-file" : ""}`} onClick={() => !imageFile && imageInputRef.current?.click()}>
                 {imagePreview ? (
                   <div className="zone-preview">
@@ -294,35 +334,25 @@ export default function NewConsultation() {
                   <>
                     <span className="zone-icon">🖼</span>
                     <span className="zone-label">Drop image here / tap</span>
-                    <div className="zone-pills">
-                      <span>📷 Camera</span><span>🖼 Gallery</span>
-                    </div>
+                    <div className="zone-pills"><span>📷 Camera</span><span>🖼 Gallery</span></div>
                     <span className="zone-hint">JPG · PNG · HEIC · max 10 MB</span>
                   </>
                 )}
                 <input ref={imageInputRef} type="file" accept="image/*" hidden onChange={handleImageUpload} />
               </div>
-
-              {/* Zone 2: Voice Record */}
               <div className="input-zone zone-record">
                 <button className={`mic-btn ${isRecording ? "recording" : ""}`}
-                  onMouseDown={!isRecording ? startRecording : undefined}
-                  onMouseUp={isRecording ? stopRecording : undefined}
                   onClick={isRecording ? stopRecording : startRecording}>
-                  {isRecording ? (
-                    <><span className="mic-pulse-ring" /><span className="mic-pulse-ring delay" /><span className="mic-icon">⏹</span></>
-                  ) : <span className="mic-icon">🎙</span>}
+                  {isRecording ? (<><span className="mic-pulse-ring" /><span className="mic-pulse-ring delay" /><span className="mic-icon">⏹</span></>) : <span className="mic-icon">🎙</span>}
                 </button>
                 {isRecording ? (
                   <><span className="rec-timer">● {fmtTime(recordTime)}</span><div className="rec-waveform">{Array.from({length:12}).map((_,i)=><span key={i} style={{animationDelay:`${i*0.08}s`}}/>)}</div></>
                 ) : audioFile ? (
                   <span className="rec-done">✓ {fmtTime(recordTime)} recorded</span>
                 ) : (
-                  <span className="rec-hint">Hold to Record<br/>Whisper STT</span>
+                  <span className="rec-hint">Tap to Record<br/>Whisper STT</span>
                 )}
               </div>
-
-              {/* Zone 3: Analyse */}
               <button className={`input-zone zone-analyse ${(!audioFile && !imageFile) || isRecording ? "disabled" : ""}`}
                 disabled={(!audioFile && !imageFile) || isRecording || consulting} onClick={handleAnalyse}>
                 <span className="zone-analyse-icon">{consulting ? "⏳" : "🔍"}</span>

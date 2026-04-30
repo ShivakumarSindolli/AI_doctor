@@ -1,0 +1,140 @@
+/* ═══════════════════ SPECIALIST SUGGESTION CARD ═══════════════════ */
+.specialist-suggest-card{border:none!important;background:linear-gradient(135deg,rgba(245,250,255,0.95),rgba(236,248,255,0.9))!important;border-left:4px solid var(--blue)!important;box-shadow:0 8px 32px rgba(59,130,246,0.1)!important}
+.ssc-header{display:flex;gap:16px;align-items:start;margin-bottom:12px}
+.ssc-icon-wrap{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--blue),var(--indigo));display:grid;place-items:center;font-size:1.4rem;flex-shrink:0}
+.ssc-label{font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--blue)}
+.ssc-header h3{font-size:1.1rem;margin-top:4px}
+.ssc-specialty{color:var(--indigo);font-weight:700}
+.ssc-reason{font-size:.9rem;line-height:1.6;color:var(--text-secondary);margin-bottom:16px}
+.ssc-doctors-preview{display:flex;gap:14px;margin-bottom:16px}
+.ssc-doc-mini{display:flex;gap:10px;align-items:center;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,0.8)}
+.ssc-doc-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;display:grid;place-items:center;font-size:.78rem;font-weight:700;flex-shrink:0}
+.ssc-doc-mini strong{font-size:.88rem;display:block}
+.ssc-doc-mini span{font-size:.75rem;color:var(--text-secondary)}
+.ssc-book-btn{width:100%;padding:16px;border-radius:16px;background:linear-gradient(135deg,var(--blue),var(--indigo));color:#fff;font-size:1rem;font-weight:600;display:grid;gap:4px;text-align:center;cursor:pointer;transition:transform .2s,box-shadow .2s;border:none}
+.ssc-book-btn:hover{transform:translateY(-2px);box-shadow:0 12px 30px rgba(59,130,246,0.3)}
+.ssc-book-btn span{font-size:.8rem;font-weight:400;opacity:.8}
+
+/* ═══════════════════ BOOKING CARD ═══════════════════ */
+.booking-card{border:2px solid rgba(59,130,246,0.15)!important;background:linear-gradient(180deg,rgba(248,250,255,0.98),#fff)!important}
+.bk-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.bk-header h3{font-size:1.15rem}
+.bk-close{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.05);display:grid;place-items:center;font-size:.9rem;cursor:pointer;transition:background .2s}
+.bk-close:hover{background:rgba(0,0,0,0.1)}
+.bk-sub{font-size:.88rem;color:var(--text-secondary);margin-bottom:16px}
+.bk-step{display:flex;align-items:center;gap:10px;margin:18px 0 10px}
+.bk-step-num{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;font-size:.82rem;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+.bk-step h4{font-size:.95rem;font-weight:600}
+.bk-doctors{display:grid;gap:10px}
+.bk-doc-card{display:flex;gap:14px;align-items:center;padding:14px 16px;border-radius:16px;background:rgba(248,250,252,0.9);border:2px solid transparent;cursor:pointer;transition:all .2s;text-align:left}
+.bk-doc-card:hover{border-color:rgba(79,70,229,0.2);background:#fff}
+.bk-doc-card.selected{border-color:var(--indigo);background:rgba(238,242,255,0.6);box-shadow:0 4px 16px rgba(79,70,229,0.1)}
+.bk-doc-avatar{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;display:grid;place-items:center;font-weight:700;font-size:.88rem;flex-shrink:0}
+.bk-doc-info{flex:1}
+.bk-doc-info strong{font-size:.95rem;display:block}
+.bk-doc-info>span{font-size:.82rem;color:var(--text-secondary);display:block;margin-top:2px}
+.bk-doc-meta{display:flex;gap:12px;margin-top:6px;flex-wrap:wrap}
+.bk-doc-meta span{font-size:.78rem;color:var(--text-secondary)}
+.bk-doc-fee{text-align:right;flex-shrink:0}
+.bk-doc-fee strong{font-size:1.1rem;display:block;color:var(--indigo)}
+.bk-doc-fee span{font-size:.72rem;color:var(--text-secondary)}
+.bk-check{width:28px;height:28px;border-radius:50%;background:var(--emerald);color:#fff;display:grid;place-items:center;font-weight:700;font-size:.85rem;flex-shrink:0}
+.bk-dates{display:flex;gap:8px;flex-wrap:wrap}
+.bk-date-pill{padding:10px 18px;border-radius:12px;background:rgba(248,250,252,0.9);border:2px solid transparent;font-size:.88rem;font-weight:500;cursor:pointer;transition:all .2s}
+.bk-date-pill:hover{border-color:rgba(79,70,229,0.2)}
+.bk-date-pill.selected{border-color:var(--indigo);background:rgba(238,242,255,0.8);color:var(--indigo);font-weight:600}
+.bk-times{display:flex;gap:8px;flex-wrap:wrap}
+.bk-time-pill{padding:8px 16px;border-radius:10px;background:rgba(248,250,252,0.9);border:2px solid transparent;font-size:.85rem;cursor:pointer;transition:all .2s}
+.bk-time-pill:hover{border-color:rgba(79,70,229,0.2)}
+.bk-time-pill.selected{border-color:var(--indigo);background:var(--indigo);color:#fff;font-weight:600}
+.bk-summary{margin-top:18px;padding:18px;border-radius:16px;background:rgba(248,250,252,0.9);display:grid;gap:10px}
+.bk-summary-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.bk-summary-row span{font-size:.85rem;color:var(--text-secondary)}
+.bk-summary-row strong{font-size:.9rem}
+.bk-confirm-btn{width:100%;padding:16px;border-radius:14px;background:linear-gradient(135deg,var(--emerald),#047857);color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;border:none}
+.bk-confirm-btn:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px rgba(5,150,105,0.3)}
+.bk-confirm-btn:disabled{opacity:.7;cursor:wait}
+
+/* ═══════════════════ BOOKING CONFIRMED ═══════════════════ */
+.booking-confirmed-card{border:none!important;background:linear-gradient(135deg,rgba(236,253,245,0.95),rgba(240,253,244,0.9))!important;text-align:center;box-shadow:0 8px 32px rgba(5,150,105,0.1)!important}
+.bkc-check-wrap{display:flex;justify-content:center;margin-bottom:12px}
+.bkc-check{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--emerald),#047857);color:#fff;font-size:1.5rem;font-weight:700;display:grid;place-items:center;animation:checkPop .5s ease}
+@keyframes checkPop{0%{transform:scale(0)}50%{transform:scale(1.2)}100%{transform:scale(1)}}
+.booking-confirmed-card h3{font-size:1.2rem;margin-bottom:4px}
+.bkc-sub{font-size:.88rem;color:var(--text-secondary);margin-bottom:16px}
+.bkc-details{text-align:left;padding:16px;border-radius:14px;background:rgba(255,255,255,0.7);display:grid;gap:8px;margin-bottom:16px}
+.bkc-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0}
+.bkc-row span{font-size:.85rem;color:var(--text-secondary)}
+.bkc-row strong{font-size:.9rem}
+.bkc-actions{display:flex;gap:10px;justify-content:center}
+
+/* ═══════════════════ APPOINTMENTS PAGE ═══════════════════ */
+.appt-page{padding:24px 20px;max-width:1200px;margin:0 auto;width:100%;display:grid;gap:24px}
+.appt-page h1{font-size:1.8rem}
+.appt-header{display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:16px}
+.appt-empty{text-align:center;padding:80px 20px;display:grid;gap:16px;place-items:center}
+.appt-empty-icon{font-size:3.5rem;opacity:.6}
+.appt-empty h3{font-size:1.3rem}
+.appt-empty p{color:var(--text-secondary);max-width:480px}
+.appt-section h2{font-size:1.2rem;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.appt-count{padding:3px 10px;border-radius:var(--radius-pill);background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;font-size:.78rem;font-weight:600}
+.appt-count.muted{background:rgba(0,0,0,0.1);color:var(--text-secondary)}
+.appt-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:16px}
+.appt-card{padding:22px;border-radius:var(--radius-lg);background:var(--bg-card);border:1px solid rgba(255,255,255,0.72);box-shadow:var(--shadow);backdrop-filter:blur(16px);display:grid;gap:14px;transition:transform .2s}
+.appt-card:hover{transform:translateY(-2px)}
+.appt-card.cancelled{opacity:.6}
+.appt-card-status{display:flex;align-items:center;gap:8px;font-size:.82rem;font-weight:600;color:var(--emerald)}
+.appt-card-status.cancelled-status{color:var(--red)}
+.appt-status-dot{width:8px;height:8px;border-radius:50%;background:var(--emerald);animation:statusPulse 2s infinite}
+.appt-status-dot.cancelled-dot{background:var(--red);animation:none}
+@keyframes statusPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.appt-card-top{display:flex;gap:14px;align-items:center}
+.appt-doc-avatar{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;display:grid;place-items:center;font-weight:700;font-size:.88rem;flex-shrink:0}
+.appt-doc-avatar.muted{background:rgba(0,0,0,0.1);color:var(--text-secondary)}
+.appt-doc-info strong{font-size:1rem;display:block}
+.appt-doc-info span{font-size:.82rem;color:var(--text-secondary)}
+.appt-card-details{display:grid;gap:8px;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.appt-detail-row{display:flex;align-items:center;gap:10px}
+.appt-detail-icon{font-size:1rem;width:24px;text-align:center;flex-shrink:0}
+.appt-detail-row div{display:grid;gap:1px}
+.appt-detail-row span{font-size:.78rem;color:var(--text-secondary)}
+.appt-detail-row strong{font-size:.88rem}
+.appt-card-actions{display:flex;gap:10px}
+.appt-card-footer{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-secondary)}
+
+/* ═══════════════════ REPORT APPOINTMENT SECTION ═══════════════════ */
+.report-appointment{background:rgba(236,253,245,0.3);border:1px solid rgba(5,150,105,0.15);border-radius:16px;padding:20px}
+.report-appt-card{padding:18px;border-radius:14px;background:rgba(255,255,255,0.8);display:grid;gap:14px}
+.report-appt-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:var(--radius-pill);background:rgba(5,150,105,0.1);color:var(--emerald);font-size:.78rem;font-weight:700;letter-spacing:.04em;width:fit-content}
+.report-appt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.report-appt-grid div{display:grid;gap:2px}
+.report-appt-grid span{font-size:.78rem;color:var(--text-secondary)}
+.report-appt-grid strong{font-size:.88rem}
+.report-appt-note{font-size:.82rem;color:var(--text-secondary);line-height:1.5;padding-top:8px;border-top:1px solid var(--border)}
+
+/* ═══════════════════ LOADING SPINNER ═══════════════════ */
+.loading-spinner{width:32px;height:32px;border:3px solid rgba(79,70,229,0.15);border-top-color:var(--indigo);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+.loading-spinner.small{width:20px;height:20px;border-width:2px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══════════════════ EMPTY STATE ORB ═══════════════════ */
+.consult-empty-orb{position:relative;width:100px;height:100px;margin-bottom:8px}
+.orb-inner{position:absolute;inset:15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(145,232,255,0.9),transparent 40%),radial-gradient(circle at 60% 60%,rgba(79,70,229,0.8),transparent 45%),radial-gradient(circle,#0f172a,#1d4ed8);box-shadow:0 12px 32px rgba(37,99,235,0.25)}
+.orb-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(79,70,229,0.15);animation:orbPulse 3s ease-in-out infinite}
+.orb-ring.r2{inset:-10px;animation-delay:1s;border-color:rgba(79,70,229,0.08)}
+@keyframes orbPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.1);opacity:.2}}
+
+/* ═══════════════════ ENHANCED LOADING BUBBLE ═══════════════════ */
+.consult-loading-bubble{display:flex;align-items:center;gap:16px;padding:20px 24px;background:linear-gradient(135deg,rgba(248,250,255,0.95),#fff);border:1px solid var(--border);border-radius:var(--radius-md);margin:20px auto;max-width:520px;box-shadow:0 8px 24px rgba(0,0,0,0.04)}
+.consult-loading-bubble strong{display:block;font-size:.95rem;margin-bottom:2px}
+.consult-loading-bubble p{color:var(--text-secondary);font-size:.85rem;margin:0}
+
+/* ═══════════════════ NAVBAR ENHANCEMENTS ═══════════════════ */
+.nav-brand-glow{position:absolute;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle,rgba(79,70,229,0.3),transparent 70%);filter:blur(8px);pointer-events:none}
+.nav-cta-pulse{position:absolute;inset:0;border-radius:var(--radius-pill);background:linear-gradient(135deg,var(--navy),var(--indigo));animation:ctaPulse 3s ease-in-out infinite;opacity:0;pointer-events:none}
+@keyframes ctaPulse{0%,100%{opacity:0;transform:scale(1)}50%{opacity:.15;transform:scale(1.05)}}
+.nav-cta-btn{position:relative;overflow:hidden}
+.nav-link{display:flex;align-items:center;gap:6px}
+.nav-link svg{opacity:.6}
+.nav-link.active svg{opacity:1}
+.nav-drop-icon{font-size:1rem;width:22px;text-align:center}

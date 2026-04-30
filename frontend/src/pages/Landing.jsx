@@ -22,7 +22,7 @@ export default function Landing() {
     e.preventDefault(); setAuthLoading(true); setAuthError("");
     try {
       await login(loginForm.email, loginForm.password);
-      setShowAuth(false); navigate("/dashboard");
+      setShowAuth(false); navigate("/consult/new");
       setToast("Welcome back. Your clinical workspace is ready.");
     } catch (err) { setAuthError(err.message); } finally { setAuthLoading(false); }
   }
@@ -31,7 +31,7 @@ export default function Landing() {
     e.preventDefault(); setAuthLoading(true); setAuthError("");
     try {
       await doRegister(registerForm);
-      setShowAuth(false); navigate("/dashboard");
+      setShowAuth(false); navigate("/consult/new");
       setToast("Account created. You are now signed in.");
     } catch (err) { setAuthError(err.message); } finally { setAuthLoading(false); }
   }
