@@ -41,12 +41,18 @@
 .dp-apt-patient strong { display: block; font-size: .95rem; margin-bottom: 2px; }
 .dp-apt-patient span { font-size: .82rem; color: var(--text-secondary); }
 .dp-apt-status { padding: 4px 12px; border-radius: 999px; font-size: .78rem; font-weight: 600; }
-.dp-apt-status.scheduled { background: rgba(79,70,229,0.1); color: var(--indigo); }
-.dp-apt-status.confirmed { background: rgba(34,197,94,0.1); color: var(--emerald); }
-.dp-apt-status.cancelled { background: rgba(239,68,68,0.1); color: var(--red); }
+.dp-apt-status.scheduled { background: rgba(79,70,229,0.1); color: var(--indigo); text-transform: capitalize; }
+.dp-apt-status.confirmed, .dp-apt-status.accepted { background: rgba(34,197,94,0.1); color: var(--emerald); text-transform: capitalize; }
+.dp-apt-status.cancelled, .dp-apt-status.rejected { background: rgba(239,68,68,0.1); color: var(--red); text-transform: capitalize; }
 .dp-apt-details { display: flex; flex-direction: column; gap: 8px; padding-top: 16px; border-top: 1px solid var(--border); }
 .dp-apt-detail { display: flex; align-items: center; gap: 8px; font-size: .87rem; color: var(--text-secondary); }
 .dp-apt-detail.notes { color: var(--text-primary); }
+.dp-apt-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); }
+.dp-action-btn { padding: 10px; border-radius: 10px; font-weight: 600; font-size: .9rem; border: none; cursor: pointer; transition: all .2s; }
+.dp-action-btn.accept { background: rgba(34,197,94,0.1); color: var(--emerald); }
+.dp-action-btn.accept:hover { background: var(--emerald); color: #fff; transform: translateY(-1px); }
+.dp-action-btn.reject { background: rgba(239,68,68,0.1); color: var(--red); }
+.dp-action-btn.reject:hover { background: var(--red); color: #fff; transform: translateY(-1px); }
 
 /* Profile Edit */
 .dp-profile-edit { display: grid; grid-template-columns: 1fr 400px; gap: 32px; align-items: start; }

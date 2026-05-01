@@ -5,18 +5,21 @@ import { LANGUAGES } from "../utils/api";
 import { Globe, Bell, User, Calendar, Settings, ClipboardList, HelpCircle, LogOut } from "lucide-react";
 
 export default function Navbar() {
-  const { profile, logout, setToast, language, setLanguage } = useAuth();
+  const { profile, logout, setToast, language, setLanguage, appointments } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const dropRef = useRef(null);
   const langRef = useRef(null);
+  const notifRef = useRef(null);
 
   useEffect(() => {
     function handler(e) {
       if (dropRef.current && !dropRef.current.contains(e.target)) setDropdownOpen(false);
       if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
     }
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -26,6 +29,12 @@ export default function Navbar() {
   const initial = profile?.full_name?.[0] || "D";
   const displayName = profile?.full_name || "Doctor";
   const currentLang = LANGUAGES.find((l) => l.code === language) || LANGUAGES[0];
+  const isDoctor = profile?.role === "doctor";
+  
+  const notifications = (appointments || []).filter(a => {
+    if (isDoctor) return a.status === "scheduled";
+    return a.status === "accepted" || a.status === "rejected";
+  }).slice(0, 5);
 
   return (
     <nav className="app-navbar">
@@ -86,10 +95,30 @@ export default function Navbar() {
           )}
         </div>
 
-        <button className="nav-bell" onClick={() => setToast("No new alerts")} style={{display: "flex", alignItems: "center"}}>
-          <Bell size={18} />
-          <span className="nav-bell-badge">2</span>
-        </button>
+        <div className="nav-notif-wrap" ref={notifRef}>
+          <button className="nav-bell" onClick={() => setNotifOpen(!notifOpen)} style={{display: "flex", alignItems: "center"}}>
+            <Bell size={18} />
+            {notifications.length > 0 && <span className="nav-bell-badge">{notifications.length}</span>}
+          </button>
+          {notifOpen && (
+            <div className="nav-dropdown nav-notif-dropdown">
+              <div className="nav-notif-header">Notifications</div>
+              <div className="nav-notif-list">
+                {notifications.length > 0 ? notifications.map(n => (
+                  <div key={n.id} className="nav-notif-item" onClick={() => { setNotifOpen(false); navigate(isDoctor ? "/doctor/portal" : "/appointments"); }}>
+                    <div className={`nav-notif-dot ${n.status}`} />
+                    <div className="nav-notif-text">
+                      <strong>{isDoctor ? `New appointment from ${n.other_party_name}` : `Appointment ${n.status}`}</strong>
+                      <span>{isDoctor ? `for ${n.date} at ${n.time}` : `by Dr. ${n.other_party_name} for ${n.date}`}</span>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="nav-notif-empty">No new notifications</div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
         <div className="nav-user-wrap" ref={dropRef}>
           <button className="nav-user-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
             <div className="nav-avatar">{initial}</div>

@@ -67,3 +67,26 @@ def get_my_appointments(current_user: User = Depends(get_current_user), db: Sess
                 "role": "patient"
             })
         return results
+
+class StatusUpdate(BaseModel):
+    status: str
+
+@router.put("/{appointment_id}/status", summary="Update appointment status")
+def update_status(appointment_id: int, req: StatusUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.role != "doctor":
+        raise HTTPException(status_code=403, detail="Only doctors can update appointment status")
+        
+    apt = db.query(Appointment).filter(Appointment.id == appointment_id).first()
+    if not apt:
+        raise HTTPException(status_code=404, detail="Appointment not found")
+        
+    if apt.doctor_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this appointment")
+        
+    if req.status not in ["accepted", "rejected", "completed", "scheduled", "cancelled"]:
+        raise HTTPException(status_code=400, detail="Invalid status")
+        
+    apt.status = req.status
+    db.commit()
+    db.refresh(apt)
+    return {"status": "success", "appointment_id": apt.id, "new_status": apt.status}

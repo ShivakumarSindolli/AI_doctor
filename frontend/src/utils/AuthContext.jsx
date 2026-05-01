@@ -46,6 +46,10 @@ export function AuthProvider({ children }) {
     setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status: "cancelled" } : a));
   }
 
+  function updateAppointmentStatus(id, newStatus) {
+    setAppointments((prev) => prev.map((a) => a.id === id ? { ...a, status: newStatus } : a));
+  }
+
   async function hydrate(activeToken = token) {
     setLoading(true);
     try {
@@ -89,7 +93,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider
-      value={{ token, profile, setProfile, history, setHistory, appointments, addAppointment, cancelAppointment, language, setLanguage, loading, toast, setToast, login, register, logout, hydrate, persistToken }}
+      value={{ token, profile, setProfile, history, setHistory, appointments, addAppointment, cancelAppointment, updateAppointmentStatus, language, setLanguage, loading, toast, setToast, login, register, logout, hydrate, persistToken }}
     >
       {children}
     </AuthContext.Provider>

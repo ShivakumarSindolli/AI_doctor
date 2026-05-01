@@ -12,7 +12,7 @@ const SPECIALTIES = [
 ];
 
 export default function DoctorPortal() {
-  const { profile, token, appointments, setToast } = useAuth();
+  const { profile, token, appointments, setToast, updateAppointmentStatus } = useAuth();
   const navigate = useNavigate();
 
   const [tab, setTab] = useState("appointments");
@@ -60,6 +60,20 @@ export default function DoctorPortal() {
       setToast(err.message);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleStatusChange(id, status) {
+    try {
+      await apiFetch(`/appointments/${id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status })
+      });
+      updateAppointmentStatus(id, status);
+      setToast(`Appointment ${status} successfully.`);
+    } catch (err) {
+      setToast(err.message);
     }
   }
 
@@ -159,6 +173,12 @@ export default function DoctorPortal() {
                             </div>
                           )}
                         </div>
+                        {apt.status === "scheduled" && (
+                          <div className="dp-apt-actions">
+                            <button className="dp-action-btn accept" onClick={() => handleStatusChange(apt.id, "accepted")}>Accept</button>
+                            <button className="dp-action-btn reject" onClick={() => handleStatusChange(apt.id, "rejected")}>Reject</button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
