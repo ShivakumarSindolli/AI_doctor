@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../utils/AuthContext";
 import { apiFetch, getAudioUrl, uid, formatTime, buildRecordSummary, getSpecialistsForType, likelihoodToPercent, getLanguageLabel } from "../utils/api";
 import Navbar from "../components/Navbar";
-import { Brain } from "lucide-react";
+import { Brain, Activity, Eye, Bandage, Stethoscope, Paperclip, Mic, RefreshCw, Search, Image as ImageIcon, Camera, Square, Calendar, FileText, CheckCircle2, Loader2, Hospital, Volume2 } from "lucide-react";
 
 const SUGGESTIONS = [
-  { icon: "🦠", title: "Skin rash or lesion", desc: "Fungal/bacterial/allergic" },
-  { icon: "👁", title: "Eye redness / discharge", desc: "Conjunctivitis vs infection" },
-  { icon: "🩹", title: "Wound or burn", desc: "Infection or healing check" },
-  { icon: "🫁", title: "X-Ray or scan image", desc: "AI radiology reading" },
+  { icon: <Activity size={24} strokeWidth={1.5} />, title: "Skin rash or lesion", desc: "Fungal/bacterial/allergic" },
+  { icon: <Eye size={24} strokeWidth={1.5} />, title: "Eye redness / discharge", desc: "Conjunctivitis vs infection" },
+  { icon: <Bandage size={24} strokeWidth={1.5} />, title: "Wound or burn", desc: "Infection or healing check" },
+  { icon: <Stethoscope size={24} strokeWidth={1.5} />, title: "X-Ray or scan image", desc: "AI radiology reading" },
 ];
 
 export default function NewConsultation() {
@@ -47,6 +47,7 @@ export default function NewConsultation() {
     setSessionId(uid()); setResults(null);
     setImageFile(null); setImagePreview("");
     setAudioFile(null); setAudioUrl(""); setRecordTime(0);
+    if (imageInputRef.current) imageInputRef.current.value = "";
   }
 
   const stopTimer = useCallback(() => {
@@ -102,7 +103,11 @@ export default function NewConsultation() {
     setImageFile(file); setImagePreview(URL.createObjectURL(file));
   }
 
-  function removeImage() { setImageFile(null); setImagePreview(""); }
+  function removeImage() { 
+    setImageFile(null); 
+    setImagePreview(""); 
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  }
 
   async function handleAnalyse() {
     if (!audioFile && !imageFile) { setToast("Please record voice or upload an image first."); return; }
@@ -222,8 +227,8 @@ export default function NewConsultation() {
                   <div className="bubble-content-user">
                     {imagePreview && <img src={imagePreview} alt="Upload" className="bubble-thumb" />}
                     <div>
-                      {imageFile && <p className="bubble-filename">📎 {imageFile.name} · {(imageFile.size / 1024).toFixed(1)} KB</p>}
-                      {results.patient_text && <p className="bubble-voice-snippet"><em>🎙 "{results.patient_text.slice(0, 80)}…"</em></p>}
+                      {imageFile && <p className="bubble-filename"><Paperclip size={14} className="inline-icon" /> {imageFile.name} · {(imageFile.size / 1024).toFixed(1)} KB</p>}
+                      {results.patient_text && <p className="bubble-voice-snippet"><em><Mic size={14} className="inline-icon" /> "{results.patient_text.slice(0, 80)}…"</em></p>}
                     </div>
                   </div>
                   <span className="bubble-time">{formatTime(new Date())}</span>
@@ -232,14 +237,14 @@ export default function NewConsultation() {
                 {/* AI Transcript */}
                 <div className="bubble bubble-ai transcript-card">
                   <div className="transcript-label">
-                    🎙 VOICE TRANSCRIPT
+                    <Mic size={16} className="inline-icon" /> VOICE TRANSCRIPT
                     {results.language && results.language !== "en" && (
                       <span className="lang-badge">{getLanguageLabel(results.language)}</span>
                     )}
                   </div>
                   <p className="transcript-text">"{results.patient_text}"</p>
                   {results.patient_text_en && (
-                    <p className="transcript-translation">🔄 English: "{results.patient_text_en}"</p>
+                    <p className="transcript-translation"><RefreshCw size={14} className="inline-icon" /> English: "{results.patient_text_en}"</p>
                   )}
                   <span className="transcript-conf">Diagnosis Confidence · {confidence}%</span>
                 </div>
@@ -247,7 +252,7 @@ export default function NewConsultation() {
                 {/* Vision Findings */}
                 {visionFindings && (
                   <div className="bubble bubble-ai vision-card">
-                    <div className="vision-label">🔍 VISUAL FINDINGS <span>Llama 4 Scout Vision</span></div>
+                    <div className="vision-label"><Search size={16} className="inline-icon" /> VISUAL FINDINGS <span>Llama 4 Scout Vision</span></div>
                     <ul className="vision-list">
                       {visionFindings.findings ? <li>{visionFindings.findings}</li> : null}
                       {(visionFindings.abnormalities || []).map((a, i) => <li key={i}>• {a}</li>)}
@@ -295,7 +300,7 @@ export default function NewConsultation() {
                 {results.audio_player_url && (
                   <div className="bubble bubble-ai voice-player-bubble">
                     <div className="voice-player-header">
-                      <span className="voice-player-icon">🔊</span>
+                      <span className="voice-player-icon"><Volume2 size={24} color="#fff" /></span>
                       <div><strong>Voice Response</strong><span>ElevenLabs TTS · Clinical Female</span></div>
                     </div>
                     <audio controls src={results.audio_player_url} className="voice-player-audio" autoPlay />
@@ -305,7 +310,7 @@ export default function NewConsultation() {
                 {/* ★ SPECIALIST SUGGESTION — redirects to /booking */}
                 <div className="bubble bubble-ai specialist-suggest-card">
                   <div className="ssc-header">
-                    <div className="ssc-icon-wrap"><span>🏥</span></div>
+                    <div className="ssc-icon-wrap"><Hospital size={24} /></div>
                     <div>
                       <span className="ssc-label">AI SPECIALIST RECOMMENDATION</span>
                       <h3>Recommended: <span className="ssc-specialty">{(results.specialist || "General").charAt(0).toUpperCase() + (results.specialist || "general").slice(1)}</span> Specialist</h3>
@@ -324,14 +329,14 @@ export default function NewConsultation() {
                     ))}
                   </div>
                   <button className="ssc-book-btn" onClick={() => navigate(`/booking?specialty=${encodeURIComponent(results.specialist || "general")}&session=${results.session_id}`)}>
-                    📅 Book Appointment with Specialist
+                    <div className="btn-content-wrap"><Calendar size={18} className="inline-icon" /> Book Appointment with Specialist</div>
                     <span>Browse doctors, pick a date & time — AI handles the rest</span>
                   </button>
                 </div>
 
                 {/* Generate Report */}
                 <button className="generate-report-btn" onClick={() => navigate(`/report/${results.session_id}`)}>
-                  📄 Generate Full Report
+                  <div className="btn-content-wrap"><FileText size={18} className="inline-icon" /> Generate Full Report</div>
                   <span>Creates a structured PDF report for this consultation</span>
                 </button>
               </div>
@@ -351,9 +356,9 @@ export default function NewConsultation() {
                   </div>
                 ) : (
                   <>
-                    <span className="zone-icon">🖼</span>
+                    <span className="zone-icon"><ImageIcon size={32} strokeWidth={1.5} /></span>
                     <span className="zone-label">Drop image here / tap</span>
-                    <div className="zone-pills"><span>📷 Camera</span><span>🖼 Gallery</span></div>
+                    <div className="zone-pills"><span><Camera size={12} className="inline-icon"/> Camera</span><span><ImageIcon size={12} className="inline-icon"/> Gallery</span></div>
                     <span className="zone-hint">JPG · PNG · HEIC · max 10 MB</span>
                   </>
                 )}
@@ -362,24 +367,24 @@ export default function NewConsultation() {
               <div className="input-zone zone-record">
                 <button className={`mic-btn ${isRecording ? "recording" : ""}`}
                   onClick={isRecording ? stopRecording : startRecording}>
-                  {isRecording ? (<><span className="mic-pulse-ring" /><span className="mic-pulse-ring delay" /><span className="mic-icon">⏹</span></>) : <span className="mic-icon">🎙</span>}
+                  {isRecording ? (<><span className="mic-pulse-ring" /><span className="mic-pulse-ring delay" /><span className="mic-icon"><Square size={20} fill="currentColor" /></span></>) : <span className="mic-icon"><Mic size={24} /></span>}
                 </button>
                 {isRecording ? (
                   <><span className="rec-timer">● {fmtTime(recordTime)}</span><div className="rec-waveform">{Array.from({length:12}).map((_,i)=><span key={i} style={{animationDelay:`${i*0.08}s`}}/>)}</div></>
                 ) : audioFile ? (
-                  <span className="rec-done">✓ {fmtTime(recordTime)} recorded</span>
+                  <span className="rec-done"><CheckCircle2 size={14} className="inline-icon" /> {fmtTime(recordTime)} recorded</span>
                 ) : (
                   <span className="rec-hint">Tap to Record<br/>Whisper STT</span>
                 )}
               </div>
               <button className={`input-zone zone-analyse ${(!audioFile && !imageFile) || isRecording ? "disabled" : ""}`}
                 disabled={(!audioFile && !imageFile) || isRecording || consulting} onClick={handleAnalyse}>
-                <span className="zone-analyse-icon">{consulting ? "⏳" : "🔍"}</span>
+                <span className="zone-analyse-icon">{consulting ? <Loader2 size={32} className="spin-icon" /> : <Search size={32} strokeWidth={1.5} />}</span>
                 <strong>{consulting ? "Analysing…" : "Analyse"}</strong>
                 <span className="zone-analyse-sub">Vision + LLM + TTS</span>
                 <div className="zone-readiness">
-                  <span className={imageFile ? "ready" : ""}>✓ Image</span>
-                  <span className={audioFile ? "ready" : ""}>✓ Voice</span>
+                  <span className={imageFile ? "ready" : ""}><CheckCircle2 size={12} className="inline-icon" /> Image</span>
+                  <span className={audioFile ? "ready" : ""}><CheckCircle2 size={12} className="inline-icon" /> Voice</span>
                 </div>
               </button>
             </div>
