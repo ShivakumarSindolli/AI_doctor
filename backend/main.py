@@ -25,10 +25,17 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# ── CORS (allows Gradio frontend on different port) ───────────────────────────
+# ── CORS ──────────────────────────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://ai-doctor-new.vercel.app",
+        "https://shivakumar03-ai-doctor-pro.hf.space",
+        "http://localhost:5173",
+        "http://localhost:7860",
+        "http://127.0.0.1:7860",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
